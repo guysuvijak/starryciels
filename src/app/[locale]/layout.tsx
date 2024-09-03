@@ -10,7 +10,7 @@ import { LocaleLayoutProps } from '@/types/(global)/Global';
 
 function generateAlternateLinks(currentLocale: string, pathname: string) {
     const locales = ['en', 'th'];
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = 'https://starryciels.vercel.app/en';
     
     const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '');
     
@@ -56,7 +56,7 @@ export async function generateMetadata({ params: { locale } }: LocaleLayoutProps
             siteName: title,
             images: [
             {
-                url: '/metadata/manifest.png', //https://www.example.com/images/manifest.png
+                url: '/metadata/manifest.png',
                 alt: imageAlt,
                 width: 1684,
                 height: 640
@@ -70,7 +70,7 @@ export async function generateMetadata({ params: { locale } }: LocaleLayoutProps
                 alternateLinks.map(link => [link.hrefLang, link.href])
             )
         },
-        keywords: ['Ragnarok: Meteor', 'Idle RPG', 'Meteor7x', 'MeteorVIIx'],
+        keywords: ['StarryCiels', 'on-chain', 'solana', 'game nft'],
         authors: [
             { name: title },
             {

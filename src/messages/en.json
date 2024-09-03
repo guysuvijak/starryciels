@@ -11,9 +11,9 @@
     },
     "Metadata": {
         "title": "Starry Ciel",
-        "description": "Embark on an epic adventure with Pixture Traveler, an Idle & Incremental NFT-based game on the Base Chain. Dungeon, exploration, collect, and trade NFT as you journey through a fantastical pixel art world.",
-        "domain": "http://localhost:3000",
-        "image-alt": "Ragnarok: Meteor"
+        "description": "StarryCiels is Game NFT Fully on-chain 100% on Solana, an enchanting exploration and adventure game set in a vast, fantastical universe filled with stars and celestial wonders. Players control the colony as they journey through diverse realms amidst a galaxy of stars and cosmic clouds.",
+        "domain": "https://starryciels.vercel.app/en",
+        "image-alt": "Starry Ciel"
     },
     "Theme": {
         "locale": "en",
@@ -28,16 +28,5 @@
         "description": "Choose the language you want to change.",
         "en": "English",
         "th": "Thai"
-    },
-    "Character": {
-        "switch-equipment": "Equipment",
-        "switch-fashion": "Fashion",
-        "head": "head",
-        "body": "body",
-        "l-hand": "L-hand",
-        "r-hand": "R-hand",
-        "robe": "robe",
-        "shoes": "shoes",
-        "accessory": "accessory"
     }
 }
