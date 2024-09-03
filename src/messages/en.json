@@ -1,0 +1,43 @@
+{
+    "Locale": {
+        "locale": "en"
+    },
+    "GameFooter": {
+        "character": "Character",
+        "map": "Map",
+        "trade": "Trade",
+        "upgrade": "Upgrade",
+        "lobby": "Lobby"
+    },
+    "Metadata": {
+        "title": "Starry Ciel",
+        "description": "Embark on an epic adventure with Pixture Traveler, an Idle & Incremental NFT-based game on the Base Chain. Dungeon, exploration, collect, and trade NFT as you journey through a fantastical pixel art world.",
+        "domain": "http://localhost:3000",
+        "image-alt": "Ragnarok: Meteor"
+    },
+    "Theme": {
+        "locale": "en",
+        "header": "Choose Theme Color",
+        "description": "Choose the theme color you want to change.",
+        "light": "Light",
+        "dark": "Dark"
+    },
+    "Language": {
+        "locale": "en",
+        "header": "Choose Language",
+        "description": "Choose the language you want to change.",
+        "en": "English",
+        "th": "Thai"
+    },
+    "Character": {
+        "switch-equipment": "Equipment",
+        "switch-fashion": "Fashion",
+        "head": "head",
+        "body": "body",
+        "l-hand": "L-hand",
+        "r-hand": "R-hand",
+        "robe": "robe",
+        "shoes": "shoes",
+        "accessory": "accessory"
+    }
+}
