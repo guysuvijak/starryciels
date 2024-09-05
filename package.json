@@ -1,47 +1,54 @@
 {
-  "name": "nextjs-starry-ciel",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
-  },
-  "dependencies": {
-    "@solana/wallet-adapter-react": "^0.15.35",
-    "@solana/wallet-adapter-react-ui": "^0.9.35",
-    "@solana/wallet-adapter-wallets": "^0.19.32",
-    "@solana/web3.js": "^1.95.3",
-    "@tanstack/react-query": "^5.52.2",
-    "@xyflow/react": "^12.2.0",
-    "dotenv": "^16.4.5",
-    "framer-motion": "^11.3.31",
-    "next": "14.2.7",
-    "next-intl": "^3.18.0",
-    "next-nprogress-bar": "^2.3.13",
-    "next-pwa": "^5.6.0",
-    "pnpm": "^9.9.0",
-    "react": "^18",
-    "react-dom": "^18",
-    "react-icons": "^5.3.0",
-    "react-tooltip": "^5.28.0",
-    "zustand": "^4.5.5"
-  },
-  "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "autoprefixer": "^10.4.20",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.7",
-    "postcss": "^8",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5"
-  },
-  "overrides": {
-    "next-intl": {
-      "next": "^14.2.7"
+    "name": "nextjs-starry-ciel",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "next lint"
+    },
+    "dependencies": {
+        "@coral-xyz/anchor": "^0.30.1",
+        "@lightprotocol/compressed-token": "^0.11.1",
+        "@lightprotocol/stateless.js": "^0.11.0",
+        "@lightprotocol/zk-compression-cli": "^0.10.0",
+        "@solana/wallet-adapter-base": "^0.9.23",
+        "@solana/wallet-adapter-react": "^0.15.35",
+        "@solana/wallet-adapter-react-ui": "^0.9.35",
+        "@solana/wallet-adapter-wallets": "^0.19.32",
+        "@solana/web3.js": "^1.95.3",
+        "@tanstack/react-query": "^5.52.2",
+        "@xyflow/react": "^12.2.0",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "framer-motion": "^11.3.31",
+        "next": "14.2.7",
+        "next-intl": "^3.18.0",
+        "next-nprogress-bar": "^2.3.13",
+        "next-pwa": "^5.6.0",
+        "pnpm": "^9.9.0",
+        "react": "^18",
+        "react-dom": "^18",
+        "react-icons": "^5.3.0",
+        "react-tooltip": "^5.28.0",
+        "socket.io": "^4.7.5",
+        "zustand": "^4.5.5"
+    },
+    "devDependencies": {
+        "@types/node": "^20",
+        "@types/react": "^18",
+        "@types/react-dom": "^18",
+        "autoprefixer": "^10.4.20",
+        "eslint": "^8",
+        "eslint-config-next": "14.2.7",
+        "postcss": "^8",
+        "tailwindcss": "^3.4.1",
+        "typescript": "^5"
+    },
+    "overrides": {
+        "next-intl": {
+            "next": "^14.2.7"
+        }
     }
-  }
 }
