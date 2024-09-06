@@ -1,8 +1,8 @@
 'use client'
+import Image from 'next/image';
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next-nprogress-bar';
-import { FaUserAstronaut } from 'react-icons/fa';
 
 const Navbar = () => {
     const router = useRouter();
@@ -13,7 +13,7 @@ const Navbar = () => {
                 <div className="flex justify-between items-center h-16">
                     <div className="flex-shrink-0">
                         <div className="w-32 h-8 rounded flex items-center justify-center text-white font-bold">
-                            <FaUserAstronaut size={30} />
+                            <Image src='/assets/website/logo.webp' alt='logo' width={30} height={30} draggable={false} />
                             StarryCiels
                         </div>
                     </div>
