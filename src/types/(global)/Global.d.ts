@@ -10,6 +10,10 @@ export interface ProviderProps {
     locale: string;
 };
 
+export interface Web3ProviderProps {
+    children: ReactNode;
+}
+
 export interface TranslationProps {
     translate: string;
 };

@@ -1,10 +1,10 @@
 'use client'
-import React, { useEffect, useMemo, Suspense } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { ProviderProps } from '@/types/(global)/Global';
 import { AppProgressBar as ProgressBar } from 'next-nprogress-bar';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import dynamic from 'next/dynamic';
 
 import LanguageView from '@/components/(game)/LanguageView';
 import ThemeView from '@/components/(game)/ThemeView';

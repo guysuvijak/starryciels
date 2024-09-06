@@ -3,16 +3,17 @@ require('dotenv').config();
 
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline';
-    style-src 'self' 'unsafe-inline';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com;
+    child-src 'self' https://www.youtube.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' data: https: http:;
-    font-src 'self';
+    font-src 'self' https://fonts.gstatic.com;
     object-src 'self';
     base-uri 'self';
     form-action 'self';
-    frame-src 'self' https://discord.com https://youtube.com https://www.youtube.com;
+    frame-src 'self' https://discord.com https://youtube.com https://www.youtube.com https://widget.solflare.com;
     frame-ancestors 'self' https://localhost:* http://localhost:* https://*.localhost:* http://*.localhost:* https://discord.com https://youtube.com;
-    connect-src 'self' https: http: wss:;
+    connect-src 'self' https: http: wss: https://www.youtube.com;
     upgrade-insecure-requests;
 `
 
@@ -22,13 +23,20 @@ const nextConfig = {
     compiler: {
         removeConsole: process.env.NODE_ENV !== 'development',
     },
-    webpack: (config) => {
+    webpack: (config, { isServer }) => {
         config.externals.push('pino-pretty', 'lokijs', 'encoding');
-        config.resolve.fallback = { 
-            ...config.resolve.fallback,
-            fs: false, 
-            net: false, 
-            tls: false 
+        if (!isServer) {
+            config.resolve.fallback = { 
+                ...config.resolve.fallback,
+                fs: false, 
+                net: false, 
+                tls: false,
+                crypto: require.resolve('crypto-browserify')
+            };
+        }
+        config.experiments = {
+            ...config.experiments,
+            topLevelAwait: true,
         };
         return config;
     },
@@ -57,6 +65,10 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: cspHeader.replace(/\n/g, ''),
                     },
+                    {
+                      key: 'Referrer-Policy',
+                      value: 'strict-origin-when-cross-origin'
+                    }
                 ],
             },
         ];
@@ -89,7 +101,8 @@ const nextConfig = {
         ]
     },
     env: {
-        DATABASE_URL: process.env.DATABASE_URL
+        DATABASE_URL: process.env.DATABASE_URL,
+        NETWORK_RPC: process.env.NETWORK_RPC
     }
 };
 

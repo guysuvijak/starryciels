@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import type { Metadata } from 'next';
 
+import Web3Provider from '@/components/(global)/Web3Provider';
 import LayoutProvider from '@/components/(global)/Provider';
 import { LocaleLayoutProps } from '@/types/(global)/Global';
 
@@ -104,9 +105,11 @@ export default async function LocaleLayout({children, params: {locale}}: LocaleL
             </head>
             <body className='bg-black' style={{display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                 <NextIntlClientProvider locale={locale} messages={messages}>
-                    <LayoutProvider locale={locale}>
-                        <div className='flex flex-col flex-grow'>{children}</div>
-                    </LayoutProvider>
+                    <Web3Provider>
+                        <LayoutProvider locale={locale}>
+                            <div className='flex flex-col flex-grow'>{children}</div>
+                        </LayoutProvider>
+                    </Web3Provider>
                 </NextIntlClientProvider>
             </body>
         </html>

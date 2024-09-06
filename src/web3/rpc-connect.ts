@@ -11,4 +11,9 @@ export const connection: Rpc = createRpc(
     'https://zk-testnet.helius.dev:3001' // prover
 );
 
-console.log('connection', connection);
+async function main() {
+    let slot = await connection.getSlot();
+    let health = await connection.getIndexerHealth();
+}
+
+main();

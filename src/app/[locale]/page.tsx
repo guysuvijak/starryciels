@@ -208,7 +208,6 @@ const CommunityAndFAQ = () => {
 
 export default function Index() {
     const router = useRouter();
-
     const [ isConnected, setIsConnected ] = useState(false);
   
     useEffect(() => {
@@ -320,7 +319,7 @@ export default function Index() {
                     <div className="relative">
                         {/* Intro Section */}
                         <section className="h-screen flex flex-col justify-center items-center text-center px-4">
-                            <Image src='/assets/website/logo.webp' alt='logo' width={160} height={160} className={`${isConnected ? 'opacity-100' : 'opacity-20'} transition duration-300 mb-2`} draggable={false} />
+                            <Image src='/assets/website/logo.webp' alt='logo' width={160} height={160} className={`${isConnected ? 'opacity-100' : 'opacity-20'} transition duration-300 mb-2`} draggable={false} priority />
                             <SciFiTitle />
                             <motion.p
                                 className="flex justify-center items-center text-xl md:text-2xl mb-8"
