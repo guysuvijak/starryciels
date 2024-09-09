@@ -27,9 +27,7 @@ const Web3Connect = () => {
     const rpc = React.useMemo(() => {
         if (connection && publicKey) {
             return createRpc(
-                'https://zk-testnet.helius.dev:8899',
-                'https://zk-testnet.helius.dev:8784', // zk compression rpc
-                'https://zk-testnet.helius.dev:3001'  // prover
+                'https://rpc.test.honeycombprotocol.com/'  // prover
             );
         }
         return null;

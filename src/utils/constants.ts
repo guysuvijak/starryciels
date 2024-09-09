@@ -1,11 +1,5 @@
-import { Client, fetchExchange } from '@urql/core';
 import createEdgeClient from '@honeycomb-protocol/edge-client';
 
-const API_URL = 'https://edge.test.honeycombprotocol.com/';
+const API_URL = process.env.HC_API_URL;
 
-const urqlClient = new Client({
-    url: API_URL,
-    exchanges: [fetchExchange],
-});
-
-export const client = createEdgeClient(String(urqlClient), true);
+export const client = createEdgeClient(String(API_URL), true);

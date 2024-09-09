@@ -103,7 +103,13 @@ const nextConfig = {
     },
     env: {
         DATABASE_URL: process.env.DATABASE_URL,
-        NETWORK_RPC: process.env.NETWORK_RPC
+        NETWORK_RPC: process.env.NETWORK_RPC,
+        HC_API_URL: process.env.HC_API_URL,
+        HC_RPC_URL: process.env.HC_RPC_URL,
+        HC_DAS_API_URL: process.env.HC_DAS_API_URL,
+        HC_ADMIN_KEY: process.env.HC_ADMIN_KEY,
+        HC_USER_KEY: process.env.HC_USER_KEY,
+        HC_PROJECT_ID: process.env.HC_PROJECT_ID
     }
 };
 
