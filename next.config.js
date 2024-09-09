@@ -19,6 +19,7 @@ const cspHeader = `
 
 const nextConfig = {
     reactStrictMode: true,
+    transpilePackages: ['@urql/core', 'graphql'],
     swcMinify: true,
     compiler: {
         removeConsole: process.env.NODE_ENV !== 'development',

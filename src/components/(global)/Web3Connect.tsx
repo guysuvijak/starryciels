@@ -1,7 +1,7 @@
-import React, { FC, useMemo } from 'react';
+import React from 'react';
 import dynamic from 'next/dynamic';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { createRpc, Rpc } from '@lightprotocol/stateless.js';
+import { createRpc } from '@lightprotocol/stateless.js';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 import Web3Provider from '@/components/(global)/Web3Provider';
@@ -18,11 +18,13 @@ const WalletDisconnectButton = dynamic(
 
 const LightProtocolContext = React.createContext<any>(null);
 
-const LightProtocolProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
-    const connection: Rpc = createRpc();
+export const useLightProtocol = () => React.useContext(LightProtocolContext);
+
+const Web3Connect = () => {
+    const { connection } = useConnection();
     const { publicKey } = useWallet();
 
-    const rpc = useMemo(() => {
+    const rpc = React.useMemo(() => {
         if (connection && publicKey) {
             return createRpc(
                 'https://zk-testnet.helius.dev:8899',
@@ -34,21 +36,11 @@ const LightProtocolProvider: FC<{ children: React.ReactNode }> = ({ children }) 
     }, [connection, publicKey]);
 
     return (
-        <LightProtocolContext.Provider value={rpc}>
-            {children}
-        </LightProtocolContext.Provider>
-    );
-};
-
-export const useLightProtocol = () => React.useContext(LightProtocolContext);
-
-const Web3Connect = () => {
-    return (
         <Web3Provider>
-            <LightProtocolProvider>
+            <LightProtocolContext.Provider value={rpc}>
                 <WalletMultiButton />
                 <WalletDisconnectButton />
-            </LightProtocolProvider>
+            </LightProtocolContext.Provider>
         </Web3Provider>
     )
 };
