@@ -6,6 +6,8 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 
 import Web3Provider from '@/components/(global)/Web3Provider';
 
+const rpcURL = process.env.HC_RPC_URL;
+
 const WalletMultiButton = dynamic(
     () => import('@solana/wallet-adapter-react-ui').then(mod => mod.WalletMultiButton),
     { ssr: false }
@@ -26,9 +28,7 @@ const Web3Connect = () => {
 
     const rpc = React.useMemo(() => {
         if (connection && publicKey) {
-            return createRpc(
-                'https://rpc.test.honeycombprotocol.com/'  // prover
-            );
+            return createRpc(rpcURL);
         }
         return null;
     }, [connection, publicKey]);

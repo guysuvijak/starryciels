@@ -3,11 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { client } from '@/utils/constants';
 import { sendTxns } from '@/utils/honeycomb';
-import { PublicKey } from '@solana/web3.js';
 
 import Web3Connect from '@/components/(global)/Web3Connect';
-
-const admin_key = process.env.HC_ADMIN_KEY;
+import { CreateUser, CreateUserProfile } from '@/honeycomb/create-user';
 
 const Home: React.FC = () => {
     const wallet = useWallet();
@@ -29,7 +27,7 @@ const Home: React.FC = () => {
     };
 
     const handleCreate = async () => {
-        setLogs([]); // Clear previous logs
+        setLogs([]);
         addLog('Create project started...');
         
         if (!wallet.publicKey) {
@@ -85,6 +83,16 @@ const Home: React.FC = () => {
         }
       };
 
+      const handleCreateProfile = async () => {
+        const name = 'MeteorVIIx';
+        const username = 'meteorviix';
+        const pfp = 'https://starryciels.vercel.app/assets/website/ship1.png';
+        const bio = 'test bio';
+        const response = await CreateUserProfile({ wallet, connection, name, username, pfp, bio });
+        addLog(response);
+        console.log(response);
+      }
+
     return (
         <div className='bg-red-400 p-4'>
             <h1 className='text-2xl font-bold mb-4'>Honeycomb Project Creator</h1>
@@ -94,6 +102,12 @@ const Home: React.FC = () => {
                 className='bg-blue-500 text-white px-4 py-2 rounded mt-4 mb-4'
             >
                 Create Project
+            </button>
+            <button 
+                onClick={handleCreateProfile}
+                className='bg-blue-500 text-white px-4 py-2 rounded mt-4 mb-4'
+            >
+                Create Profile
             </button>
             <div className='bg-white p-4 rounded'>
                 <h2 className='text-xl font-semibold mb-2'>Logs:</h2>

@@ -1,5 +1,4 @@
 import { Transaction } from "@honeycomb-protocol/edge-client";
-import { client } from "@/utils/constants";
 import * as web3 from "@solana/web3.js";
 import base58 from "bs58";
 
@@ -17,16 +16,13 @@ export async function sendTxns(
   }
 
   try {
-    // Deserialize the transaction
     const tx = web3.VersionedTransaction.deserialize(base58.decode(txResponse.transaction));
     console.log('Deserialized transaction:', tx);
-
-    // Sign the transaction
+    
     console.log('Attempting to sign transaction');
     const signedTx = await wallet.signTransaction(tx);
     console.log('Transaction signed successfully');
-
-    // Serialize and send the signed transaction
+    
     const serializedTx = signedTx.serialize();
     console.log('Serialized signed transaction:', base58.encode(serializedTx));
 
