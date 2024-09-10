@@ -6,7 +6,7 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 
 import Web3Provider from '@/components/(global)/Web3Provider';
 
-const rpcURL = process.env.HC_RPC_URL;
+const rpcURL = process.env.RPC_URL;
 
 const WalletMultiButton = dynamic(
     () => import('@solana/wallet-adapter-react-ui').then(mod => mod.WalletMultiButton),
