@@ -1,6 +1,5 @@
 import { TransactionBuilderSendAndConfirmOptions, publicKey, generateSigner } from '@metaplex-foundation/umi';
 import { fetchAssetsByCollection, fetchCollection, create, fetchAsset, ruleSet, transfer } from '@metaplex-foundation/mpl-core';
-import { sendAndConfirmTx } from '@lightprotocol/stateless.js';
 import { umi } from '@/utils/umi';
 
 const creator1 = publicKey('HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH');
@@ -14,7 +13,7 @@ export const CreateAsset = async () => {
         confirm: { commitment: 'processed' },
     };
 
-    const collecion = await fetchCollection(umi, collectionAddress);
+    const collection = await fetchCollection(umi, collectionAddress);
 
     const metadata = {
         "name": "StarryCiels Planet",
@@ -50,7 +49,7 @@ export const CreateAsset = async () => {
         name: 'StarryCiels Planet #1',
         uri: base64Uri,
         asset: assetSigner,
-        collection: collecion,
+        collection: collection,
         plugins: [
             {
                 type: 'Royalties',

@@ -1,4 +1,4 @@
-import { TransactionBuilderSendAndConfirmOptions, generateSigner, publicKey, sol, keypairIdentity, signerIdentity, createSignerFromKeypair } from '@metaplex-foundation/umi';
+import { TransactionBuilderSendAndConfirmOptions, generateSigner, publicKey, signerIdentity, createSignerFromKeypair } from '@metaplex-foundation/umi';
 import { createCollection, fetchCollection, updateCollection, ruleSet } from '@metaplex-foundation/mpl-core';
 
 import { umi } from '@/utils/umi';

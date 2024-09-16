@@ -4,7 +4,7 @@ import 'react-tooltip/dist/react-tooltip.css';
 import Image from 'next/image';
 import React, { useState, useEffect, useCallback } from 'react';
 import {
-    ReactFlow, MiniMap, Controls, Background, BackgroundVariant, ConnectionLineType,
+    ReactFlow, Controls, Background, BackgroundVariant, ConnectionLineType,
     EdgeProps, Node, Edge, useNodesState, useEdgesState, addEdge, BaseEdge,
     getSmoothStepPath, Handle, Position
 } from '@xyflow/react';
@@ -16,7 +16,10 @@ import { GiCoalWagon } from 'react-icons/gi';
 import { FaOilWell } from 'react-icons/fa6';
 import { IconType } from 'react-icons';
 
-const resourceTypes = ['Wood', 'Stone', 'Coal', 'Gold', 'Oil'];
+import Navbar from './Navbar';
+import Panel from './Panel';
+
+const resourceTypes = ['Ore', 'Fuel', 'Food'];
 
 type ResourceType = typeof resourceTypes[number];
 type NodeType = 'Export' | 'Import';
@@ -29,6 +32,7 @@ interface NodeData {
     displayName: string;
     isConnected?: boolean;
     connectedEdgesCount?: number;
+    size: 'small' | 'medium' | 'large';
     [key: string]: unknown;
 }
 
@@ -38,29 +42,21 @@ interface EdgeData {
 }
 
 const nodeDisplayNames: Record<string, string> = {
-    'WoodImport': 'Sun',
-    'StoneImport': 'Mars',
-    'GoldImport': 'Earth',
-    'CoalImport': 'Uranus',
-    'OilImport': 'Mercury',
-    'WoodExport': 'Wood',
-    'StoneExport': 'Stone',
-    'GoldExport': 'Gold',
-    'CoalExport': 'Coal',
-    'OilExport': 'Oil',
+    'OreImport': 'Ore Station',
+    'OreExport': 'Ore',
+    'FuelImport': 'Fuel Station',
+    'FuelExport': 'Fuel',
+    'FoodImport': 'Food Station',
+    'FoodExport': 'Food',
 };
 
 const nodeImages = {
-    WoodExport: '/assets/images/wood-export.png',
-    WoodImport: '/assets/images/wood-import.png',
-    StoneExport: '/assets/images/stone-export.png',
-    StoneImport: '/assets/images/stone-import.png',
-    CoalExport: '/assets/images/coal-export.png',
-    CoalImport: '/assets/images/coal-import.png',
-    GoldExport: '/assets/images/gold-export.png',
-    GoldImport: '/assets/images/gold-import.png',
-    OilExport: '/assets/images/oil-export.png',
-    OilImport: '/assets/images/oil-import.png',
+    OreExport: '/assets/images/wood-export.png',
+    OreImport: '/assets/images/wood-import.png',
+    FuelExport: '/assets/images/stone-export.png',
+    FuelImport: '/assets/images/stone-import.png',
+    FoodExport: '/assets/images/coal-export.png',
+    FoodImport: '/assets/images/coal-import.png'
 };
 
 interface FloatingNumberProps {
@@ -114,42 +110,6 @@ interface CustomNodeProps {
     efficiency: number;
 }
 
-const CustomMiniMap = () => {
-    return (
-        <MiniMap
-            nodeColor={(node) => {
-                switch (node.data.type) {
-                    case 'Wood':
-                    return '#8B4513';
-                    case 'Stone':
-                    return '#A9A9A9';
-                    case 'Gold':
-                    return '#FFD700';
-                    case 'Coal':
-                    return '#36454F';
-                    case 'Oil':
-                    return '#000000';
-                    default:
-                    return '#eee';
-                }
-            }}
-            nodeStrokeWidth={3}
-            nodeStrokeColor="#FFFFFF"
-            maskColor="rgba(0, 0, 0, 0.5)"
-            style={{
-                backgroundColor: 'rgba(0, 10, 40, 0.8)',
-                border: '2px solid #4A90E2',
-                borderRadius: '10px',
-                boxShadow: '0 0 20px rgba(74, 144, 226, 0.6)',
-            }}
-            pannable
-            zoomable
-        />
-    );
-};
-const isEdge = (element: Node | Edge): element is Edge => {
-    return 'source' in element && 'target' in element;
-  };
 const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: CustomNodeProps) => {
     const [ rotation, setRotation ] = useState(0);
     const [ isHovered, setIsHovered ] = useState(false);
@@ -179,26 +139,26 @@ const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: Cust
     let Icon: IconType;
     let color: string;
 
+    const nodeSizes = {
+        small: 40,
+        medium: 60,
+        large: 80
+    };
+
+    const nodeSize = nodeSizes[data.size];
+
     switch(data.type) {
-        case 'Wood':
+        case 'Ore':
             Icon = GiWoodPile;
             color = '#d68d48';
             break;
-        case 'Stone':
+        case 'Fuel':
             Icon = GiStonePile;
             color = '#b8baba';
             break;
-        case 'Coal':
+        case 'Food':
             Icon = GiCoalWagon;
             color = '#525553';
-            break;
-        case 'Gold':
-            Icon = AiFillGold;
-            color = '#fcd646';
-            break;
-        case 'Oil':
-            Icon = FaOilWell;
-            color = '#8f8885';
             break;
         default:
             Icon = GiWoodPile;
@@ -216,16 +176,16 @@ const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: Cust
     return (
         <>
             {data.nodeType === 'Export' && (
-                <Handle type="source" position={Position.Right} style={{ right: -5 }} />
+                <Handle type="source" position={Position.Right} style={{ right: -10, width: 10, height: 10 }} />
             )}
             {data.nodeType === 'Import' && (
-                <Handle type="target" position={Position.Left} style={{ left: -5 }} />
+                <Handle type="target" position={Position.Left} style={{ left: -10, width: 10, height: 10 }} />
             )}
             <div
                 data-tooltip-id={`tooltip-${data.id}`}
                 style={{
-                    width: NODE_SIZE,
-                    height: NODE_SIZE,
+                    width: nodeSize,
+                    height: nodeSize,
                     borderRadius: '100%',
                     overflow: 'hidden',
                     border: data.nodeType === 'Export' ? '0px solid green' : '0px solid blue',
@@ -261,25 +221,25 @@ const initialNodes: Node<NodeData>[] = [
     {
         id: '1',
         type: 'custom',
-        data: { label: 'Wood Export', type: 'Wood', nodeType: 'Export', id: '1', displayName: 'Wood' },
+        data: { label: 'Ore Export', type: 'Ore', nodeType: 'Export', id: '1', displayName: 'Ore', size: 'medium' },
         position: { x: 250, y: 25 },
     },
     {
         id: '2',
         type: 'custom',
-        data: { label: 'Wood Import', type: 'Wood', nodeType: 'Import', id: '2', displayName: 'Sun' },
+        data: { label: 'Ore Import', type: 'Ore', nodeType: 'Import', id: '2', displayName: 'Ore Station', size: 'small' },
         position: { x: 250, y: 100 },
     },
     {
         id: '3',
         type: 'custom',
-        data: { label: 'Gold Export', type: 'Gold', nodeType: 'Export', id: '3', displayName: 'Gold' },
+        data: { label: 'Fuel Export', type: 'Fuel', nodeType: 'Export', id: '3', displayName: 'Fuel', size: 'large' },
         position: { x: 150, y: 25 },
     },
     {
         id: '4',
         type: 'custom',
-        data: { label: 'Gold Import', type: 'Gold', nodeType: 'Import', id: '4', displayName: 'Earth' },
+        data: { label: 'Fuel Import', type: 'Fuel', nodeType: 'Import', id: '4', displayName: 'Fuel Station', size: 'small' },
         position: { x: 150, y: 100 },
     },
 ];
@@ -576,29 +536,6 @@ const GameplayScreen = () => {
         custom: (props: any) => <CustomEdge {...props} onDelete={onEdgeDelete} />
     };
 
-    const onNodeDragStop = useCallback((event: React.MouseEvent, draggedNode: Node<NodeData>) => {
-        setNodes((nds) => {
-        const otherNodes = nds.filter((n) => n.id !== draggedNode.id);
-        const snappedPosition = snapToGrid(draggedNode.position);
-        const newNode = { ...draggedNode, position: snappedPosition };
-    
-        if (checkNodeCollision(newNode, otherNodes)) {
-            const validPosition = findValidPosition(newNode, otherNodes);
-            const updatedNodes = nds.map((n) => 
-            n.id === draggedNode.id ? { ...n, position: validPosition } : n
-            );
-            setEdges((eds) => calculateTraffic(eds, updatedNodes));
-            return updatedNodes;
-        } else {
-            const updatedNodes = nds.map((n) => 
-            n.id === draggedNode.id ? { ...n, position: snappedPosition } : n
-            );
-            setEdges((eds) => calculateTraffic(eds, updatedNodes));
-            return updatedNodes;
-        }
-        });
-    }, [setNodes, setEdges, calculateTraffic]);
-
     useEffect(() => {
         setEdges((eds) => calculateTraffic(eds, nodes));
     }, [nodes, setEdges, calculateTraffic]);
@@ -606,6 +543,7 @@ const GameplayScreen = () => {
     const addRandomNode = () => {
         const type = resourceTypes[Math.floor(Math.random() * resourceTypes.length)];
         const nodeType = Math.random() > 0.5 ? 'Export' : 'Import';
+        const size = ['small', 'medium', 'large'][Math.floor(Math.random() * 3)] as 'small' | 'medium' | 'large';
         let position;
         let attempts = 0;
         const maxAttempts = 100; // ป้องกันการวนลูปไม่สิ้นสุด
@@ -627,7 +565,8 @@ const GameplayScreen = () => {
                     type, 
                     nodeType, 
                     id: newNodeId,
-                    displayName: displayName
+                    displayName: displayName,
+                    size: size
                 },
                 position: position,
             };
@@ -656,39 +595,39 @@ const GameplayScreen = () => {
     };
 
     return (
-            <div style={{ width: '100vw', height: '100vh' }}>
-                <div
-                    className='relative min-h-screen overflow-x-hidden bg-black text-white z-10 hide-scrollbar'
-                >
-                    <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg1.png)', backgroundSize: 'cover', zIndex: 1 }} />
-                    <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg2.png)', backgroundSize: 'cover', zIndex: 2 }} />
-                    <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg3.png)', backgroundSize: 'cover', zIndex: 3 }} />
-                    <div className='absolute z-50 top-0 bottom-0 left-0 right-0'>
-                        <ReactFlow
-                            snapToGrid={true}
-                            snapGrid={[GRID_SIZE, GRID_SIZE]}
-                            nodesDraggable={true}
-                            nodes={nodes}
-                            edges={edges}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
-                            onConnect={onConnect}
-                            onEdgeClick={onEdgeClick}
-                            onEdgesDelete={onEdgeDelete}
-                            onNodeDragStop={onNodeDragStop}
-                            nodeTypes={nodeTypes}
-                            edgeTypes={edgeTypes}
-                            defaultEdgeOptions={{ type: 'custom', animated: true }}
-                            connectionLineType={ConnectionLineType.SmoothStep}
-                            multiSelectionKeyCode={null}
-                            selectionKeyCode={null}
-                        >
-                            <Controls />
-                            <CustomMiniMap />
-                            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
-                        </ReactFlow>
-                    </div>
+        <div style={{ width: '100vw', height: '100vh' }}>
+            <Navbar />
+            <div
+                className='relative min-h-screen overflow-x-hidden bg-black text-white z-10 hide-scrollbar'
+            >
+                <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg1.png)', backgroundSize: 'cover', zIndex: 1 }} />
+                <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg2.png)', backgroundSize: 'cover', zIndex: 2 }} />
+                <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg3.png)', backgroundSize: 'cover', zIndex: 3 }} />
+                <div className='absolute z-50 top-0 bottom-0 left-0 right-0'>
+                    <ReactFlow
+                        snapToGrid={true}
+                        snapGrid={[GRID_SIZE, GRID_SIZE]}
+                        nodesDraggable={false}
+                        nodes={nodes}
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        onEdgeClick={onEdgeClick}
+                        onEdgesDelete={onEdgeDelete}
+                        nodeTypes={nodeTypes}
+                        edgeTypes={edgeTypes}
+                        defaultEdgeOptions={{ type: 'custom', animated: true }}
+                        connectionLineType={ConnectionLineType.SmoothStep}
+                        multiSelectionKeyCode={null}
+                        selectionKeyCode={null}
+                    >
+                        <Controls showInteractive={false} />
+                        <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+                    </ReactFlow>
                 </div>
+            </div>
+            <Panel />
             <div style={{ position: 'absolute', left: 10, top: 10, zIndex: 30 }}>
                 <button onClick={addRandomNode} className='bg-white text-black px-2'>Add Random Node</button>
             </div>
