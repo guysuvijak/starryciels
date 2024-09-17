@@ -2,7 +2,7 @@
 import '@xyflow/react/dist/style.css';
 import 'react-tooltip/dist/react-tooltip.css';
 import Image from 'next/image';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     ReactFlow, Controls, Background, BackgroundVariant, ConnectionLineType,
     EdgeProps, Node, Edge, useNodesState, useEdgesState, addEdge, BaseEdge,
@@ -19,10 +19,10 @@ import { IconType } from 'react-icons';
 import Navbar from './Navbar';
 import Panel from './Panel';
 
-const resourceTypes = ['Ore', 'Fuel', 'Food'];
+const resourceTypes = ['Ore', 'Fuel', 'Food', 'Connector'];
 
 type ResourceType = typeof resourceTypes[number];
-type NodeType = 'Export' | 'Import';
+type NodeType = 'Export' | 'Import' | 'Connector';
 
 interface NodeData {
     id: string;
@@ -56,7 +56,8 @@ const nodeImages = {
     FuelExport: '/assets/images/stone-export.png',
     FuelImport: '/assets/images/stone-import.png',
     FoodExport: '/assets/images/coal-export.png',
-    FoodImport: '/assets/images/coal-import.png'
+    FoodImport: '/assets/images/coal-import.png',
+    ConnectorConnector: '/assets/images/gold-import.png'
 };
 
 interface FloatingNumberProps {
@@ -65,6 +66,32 @@ interface FloatingNumberProps {
     efficiency: number;
     onComplete: (id: number) => void;
 }
+
+const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
+    if (!isOpen) return null;
+  
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg">
+          <p className="text-lg mb-4 text-theme-title">{message}</p>
+          <div className="flex justify-end space-x-2">
+            <button
+              className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              onClick={onClose}
+            >
+              Cancel
+            </button>
+            <button
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+              onClick={onConfirm}
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
 const FloatingNumber = ({ id, value, efficiency, onComplete }: FloatingNumberProps) => {
     const [ position, setPosition ] = useState(0);
@@ -175,10 +202,10 @@ const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: Cust
     
     return (
         <>
-            {data.nodeType === 'Export' && (
+            {(data.nodeType === 'Export' || data.nodeType === 'Connector') && (
                 <Handle type="source" position={Position.Right} style={{ right: -10, width: 10, height: 10 }} />
             )}
-            {data.nodeType === 'Import' && (
+            {(data.nodeType === 'Import' || data.nodeType === 'Connector') && (
                 <Handle type="target" position={Position.Left} style={{ left: -10, width: 10, height: 10 }} />
             )}
             <div
@@ -222,25 +249,37 @@ const initialNodes: Node<NodeData>[] = [
         id: '1',
         type: 'custom',
         data: { label: 'Ore Export', type: 'Ore', nodeType: 'Export', id: '1', displayName: 'Ore', size: 'medium' },
-        position: { x: 250, y: 25 },
+        position: { x: -100, y: 100 },
     },
     {
         id: '2',
         type: 'custom',
         data: { label: 'Ore Import', type: 'Ore', nodeType: 'Import', id: '2', displayName: 'Ore Station', size: 'small' },
-        position: { x: 250, y: 100 },
+        position: { x: 300, y: 100 },
     },
     {
         id: '3',
         type: 'custom',
         data: { label: 'Fuel Export', type: 'Fuel', nodeType: 'Export', id: '3', displayName: 'Fuel', size: 'large' },
-        position: { x: 150, y: 25 },
+        position: { x: -100, y: 200 },
     },
     {
         id: '4',
         type: 'custom',
         data: { label: 'Fuel Import', type: 'Fuel', nodeType: 'Import', id: '4', displayName: 'Fuel Station', size: 'small' },
-        position: { x: 150, y: 100 },
+        position: { x: 300, y: 200 },
+    },
+    {
+        id: '5',
+        type: 'custom',
+        data: { label: 'Connector', type: 'Connector', nodeType: 'Connector', id: '5', displayName: 'Connector Node', size: 'small' },
+        position: { x: 100, y: 100 },
+    },
+    {
+        id: '6',
+        type: 'custom',
+        data: { label: 'Connector', type: 'Connector', nodeType: 'Connector', id: '6', displayName: 'Connector Node', size: 'small' },
+        position: { x: 100, y: 200 },
     },
 ];
 
@@ -384,6 +423,8 @@ const GameplayScreen = () => {
     const [ nodes, setNodes, onNodesChange ] = useNodesState<any>(initialNodes);
     const [ edges, setEdges ] = useEdgesState<any>(initialEdges);
     const [ nodeIdCounter, setNodeIdCounter ] = useState(5);
+    const [ modalOpen, setModalOpen ] = useState(false);
+    const [ edgeToDelete, setEdgeToDelete ] = useState<any>(null);
 
     const calculateEfficiency = useCallback((nodeId: string): number => {
         const connectedEdges = edges.filter(edge => edge.target === nodeId);
@@ -441,63 +482,104 @@ const GameplayScreen = () => {
         const targetNode = nodes.find(node => node.id === params.target);
         
         if (!sourceNode || !targetNode) {
-          console.error('Source or target node not found');
-          return;
+            console.error('Source or target node not found');
+            return;
         }
         
-        if (sourceNode.data.type === targetNode.data.type &&
-            sourceNode.data.nodeType === 'Export' &&
-            targetNode.data.nodeType === 'Import') {
+        const isValidConnection = (
+            // Export to Import of the same type
+            (sourceNode.data.type === targetNode.data.type &&
+             sourceNode.data.nodeType === 'Export' &&
+             targetNode.data.nodeType === 'Import') ||
+            // Export to Connector
+            (sourceNode.data.nodeType === 'Export' &&
+             targetNode.data.nodeType === 'Connector') ||
+            // Connector to Import
+            (sourceNode.data.nodeType === 'Connector' &&
+             targetNode.data.nodeType === 'Import') ||
+            // Connector to Connector
+            (sourceNode.data.nodeType === 'Connector' &&
+             targetNode.data.nodeType === 'Connector')
+        );
+    
+        if (isValidConnection) {
             // Check if export node already has an edge
-            const existingEdge = edges.find(edge => edge.source === sourceNode.id);
+            const existingEdge = edges.find(edge => 
+                edge.source === sourceNode.id && sourceNode.data.nodeType === 'Export'
+            );
             if (existingEdge && sourceNode.data.nodeType === 'Export') {
                 alert('Export node can only have one connection.');
                 return;
             }
-  
+    
+            // Check maximum connections for Connector nodes (e.g., max 3 connections)
+            const maxConnectorConnections = 3;
+            if (sourceNode.data.nodeType === 'Connector' || targetNode.data.nodeType === 'Connector') {
+                const connectorNode = sourceNode.data.nodeType === 'Connector' ? sourceNode : targetNode;
+                const connectorEdges = edges.filter(edge => 
+                    edge.source === connectorNode.id || edge.target === connectorNode.id
+                );
+                if (connectorEdges.length >= maxConnectorConnections) {
+                    alert(`Connector node can have a maximum of ${maxConnectorConnections} connections.`);
+                    return;
+                }
+            }
+    
             const newEdge = { 
                 ...params, 
                 type: 'custom',
                 data: { trafficLevel: 0 }
             };
-
+    
             setEdges((eds) => {
                 const newEdges = addEdge(newEdge, eds);
                 const updatedEdges = calculateTraffic(newEdges, nodes);
                 
                 // Update nodes with new connected edges count
                 setNodes((nds) =>
-                nds.map((node) =>
-                    node.id === targetNode.id
-                    ? { ...node, data: { ...node.data, isConnected: true, connectedEdgesCount: getConnectedEdgesCount(node.id) + 1 } }
-                    : node
-                )
+                    nds.map((node) => {
+                        if (node.id === targetNode.id || (sourceNode.data.nodeType === 'Connector' && node.id === sourceNode.id)) {
+                            return { 
+                                ...node, 
+                                data: { 
+                                    ...node.data, 
+                                    isConnected: true, 
+                                    connectedEdgesCount: getConnectedEdgesCount(node.id) + 1 
+                                } 
+                            };
+                        }
+                        return node;
+                    })
                 );
                 
                 return updatedEdges;
             });
-  
-            // Update the isConnected property for the target (Import) node
+    
+            // Update the isConnected property for the target node and Connector source node
             setNodes((nds) =>
-                nds.map((node) =>
-                node.id === targetNode.id
-                    ? { ...node, data: { ...node.data, isConnected: true } }
-                    : node
-                )
+                nds.map((node) => {
+                    if (node.id === targetNode.id || (sourceNode.data.nodeType === 'Connector' && node.id === sourceNode.id)) {
+                        return { ...node, data: { ...node.data, isConnected: true } };
+                    }
+                    return node;
+                })
             );
         } else {
-            alert('Invalid connection. You can only connect Export to Import of the same resource type.');
+            alert('Invalid connection. Check the rules for connecting nodes.');
         }
     }, [nodes, edges, setEdges, calculateTraffic, setNodes, getConnectedEdgesCount]);
 
     const onEdgeClick = useCallback((event: React.MouseEvent, edge: Edge<EdgeData>) => {
         event.preventDefault();
-        const isConfirmed = window.confirm("คุณต้องการลบการเชื่อมต่อนี้ใช่หรือไม่?");
-        if (isConfirmed) {
-            setEdges((eds) => eds.filter((e) => e.id !== edge.id));
-        }
-    }, [setEdges]);
-
+        setEdgeToDelete(edge);
+        setModalOpen(true);
+    }, []);
+    
+    const handleCancelDelete = useCallback(() => {
+        setModalOpen(false);
+        setEdgeToDelete(null);
+    }, []);
+    
     const onEdgeDelete: any = useCallback((edgeId: string) => {
         const edge = edges.find((e) => e.id === edgeId);
         if (edge) {
@@ -518,23 +600,18 @@ const GameplayScreen = () => {
         }
         setEdges((eds) => eds.filter((e) => e.id !== edgeId));
     }, [edges, setEdges, setNodes, getConnectedEdgesCount]);
+    
+    const handleConfirmDelete = useCallback(() => {
+        if (edgeToDelete) {
+            onEdgeDelete(edgeToDelete.id);
+        }
+        setModalOpen(false);
+        setEdgeToDelete(null);
+    }, [edgeToDelete, onEdgeDelete]);
 
-    const onEdgesChange = useCallback((changes: any) => {
-        setEdges((eds) => {
-            const updatedEdges = [...eds];
-            changes.forEach((change: any) => {
-                const index = updatedEdges.findIndex((e) => e.id === change.id);
-                if (index !== -1) {
-                    updatedEdges[index] = { ...updatedEdges[index], ...change };
-                }
-            });
-            return calculateTraffic(updatedEdges, nodes);
-        });
-    }, [setEdges, calculateTraffic, nodes]);
-
-    const edgeTypes = {
-        custom: (props: any) => <CustomEdge {...props} onDelete={onEdgeDelete} />
-    };
+    const edgeTypes = useMemo(() => ({
+        custom: CustomEdge
+      }), []);
 
     useEffect(() => {
         setEdges((eds) => calculateTraffic(eds, nodes));
@@ -583,16 +660,16 @@ const GameplayScreen = () => {
         console.warn('Could not find a valid position for the new node');
     };
 
-    const nodeTypes = {
+    const nodeTypes = useMemo(() => ({
         custom: (props: any) => (
-            <CustomNode
-                {...props}
-                isConnected={getConnectedEdgesCount(props.id) > 0}
-                connectedEdgesCount={getConnectedEdgesCount(props.id)}
-                efficiency={calculateEfficiency(props.id)}
-            />
+          <CustomNode
+            {...props}
+            isConnected={getConnectedEdgesCount(props.id) > 0}
+            connectedEdgesCount={getConnectedEdgesCount(props.id)}
+            efficiency={calculateEfficiency(props.id)}
+          />
         )
-    };
+    }), [getConnectedEdgesCount, calculateEfficiency]);
 
     return (
         <div style={{ width: '100vw', height: '100vh' }}>
@@ -611,10 +688,8 @@ const GameplayScreen = () => {
                         nodes={nodes}
                         edges={edges}
                         onNodesChange={onNodesChange}
-                        onEdgesChange={onEdgesChange}
                         onConnect={onConnect}
                         onEdgeClick={onEdgeClick}
-                        onEdgesDelete={onEdgeDelete}
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes}
                         defaultEdgeOptions={{ type: 'custom', animated: true }}
@@ -625,6 +700,12 @@ const GameplayScreen = () => {
                         <Controls showInteractive={false} />
                         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
                     </ReactFlow>
+                    <ConfirmModal
+                        isOpen={modalOpen}
+                        onClose={handleCancelDelete}
+                        onConfirm={handleConfirmDelete}
+                        message="คุณต้องการลบการเชื่อมต่อนี้ใช่หรือไม่?"
+                    />
                 </div>
             </div>
             <Panel />
