@@ -286,6 +286,7 @@ const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: Cust
                     alt={`${data.type} ${data.nodeType}`}
                     width={200} height={200}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    priority
                 />
             </div>
             <Tooltip id={`tooltip-${data.id}`} render={() => tooltipContent} />
