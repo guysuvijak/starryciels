@@ -176,6 +176,39 @@ const FloatingNumber = ({ id, value, efficiency, onComplete }: FloatingNumberPro
     );
 };
 
+interface DistanceIndicatorProps {
+    sourceX: number;
+    sourceY: number;
+    targetX: number;
+    targetY: number;
+}
+
+const DistanceIndicator: React.FC<DistanceIndicatorProps> = ({ sourceX, sourceY, targetX, targetY }) => {
+    const distance = Math.sqrt(Math.pow(targetX - sourceX, 2) + Math.pow(targetY - sourceY, 2));
+    const midX = (sourceX + targetX) / 2;
+    const midY = (sourceY + targetY) / 2;
+  
+    return (
+      <div
+        style={{
+          position: 'absolute',
+          left: midX,
+          top: midY,
+          transform: 'translate(-50%, -50%)',
+          background: 'red',
+          color: 'white',
+          padding: '2px 6px',
+          borderRadius: '4px',
+          fontSize: '12px',
+          pointerEvents: 'none',
+          zIndex: 150
+        }}
+      >
+        {Math.round(distance)} units
+      </div>
+    );
+};
+
 interface CustomNodeProps {
     data: NodeData;
     isConnected: boolean;
@@ -534,6 +567,29 @@ const GameplayScreen = () => {
     const [ nodeModalOpen, setNodeModalOpen ] = useState(false);
     const [ edgeToDelete, setEdgeToDelete ] = useState<any>(null);
     const [ nodeToDelete, setNodeToDelete ] = useState<any>(null);
+    const [ connectionStart, setConnectionStart ] = useState({ x: 0, y: 0 });
+    const [ mousePosition, setMousePosition ] = useState({ x: 0, y: 0 });
+    const [ isConnecting, setIsConnecting ] = useState(false);
+
+    const onConnectStart = useCallback((event: any, { nodeId, handleType, handleId }: any) => {
+        const targetNode = nodes.find(n => n.id === nodeId);
+        if (targetNode) {
+          const handleBounds = event.target.getBoundingClientRect();
+          setConnectionStart({ 
+            x: handleBounds.left + handleBounds.width / 2, 
+            y: handleBounds.top + handleBounds.height / 2 
+          });
+          setIsConnecting(true);
+        }
+      }, [nodes]);
+    
+      const onConnectEnd = useCallback(() => {
+        setIsConnecting(false);
+      }, []);
+    
+      const onMouseMove = useCallback((event: any) => {
+        setMousePosition({ x: event.clientX, y: event.clientY });
+      }, []);
 
     const calculateEfficiency = useCallback((nodeId: string): number => {
         const connectedEdges = edges.filter(edge => edge.target === nodeId);
@@ -613,6 +669,16 @@ const GameplayScreen = () => {
         
         if (!sourceNode || !targetNode) {
             console.error('Source or target node not found');
+            return;
+        }
+
+        const distance = Math.sqrt(
+            Math.pow(targetNode.position.x - sourceNode.position.x, 2) +
+            Math.pow(targetNode.position.y - sourceNode.position.y, 2)
+        );
+
+        if (distance > 200) {
+            alert('Connection distance exceeds 200 units. Unable to connect nodes.');
             return;
         }
         
@@ -881,7 +947,7 @@ const GameplayScreen = () => {
 
     return (
         <NodeContext.Provider value={{ nodes }}>
-            <div style={{ width: '100vw', height: '100vh' }}>
+            <div style={{ width: '100vw', height: '100vh' }} onMouseMove={onMouseMove}>
                 <Navbar />
                 <div
                     className='relative min-h-screen overflow-x-hidden bg-black text-white z-10 hide-scrollbar'
@@ -893,6 +959,8 @@ const GameplayScreen = () => {
                         <ReactFlow
                             snapToGrid={true}
                             snapGrid={[GRID_SIZE, GRID_SIZE]}
+                            onConnectStart={onConnectStart}
+                            onConnectEnd={onConnectEnd}
                             nodesDraggable={false}
                             nodes={nodes}
                             edges={edges}
@@ -909,6 +977,14 @@ const GameplayScreen = () => {
                         >
                             <Controls showInteractive={false} />
                             <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+                            {isConnecting && (
+                                <DistanceIndicator
+                                sourceX={connectionStart.x}
+                                sourceY={connectionStart.y}
+                                targetX={mousePosition.x}
+                                targetY={mousePosition.y}
+                                />
+                            )}
                         </ReactFlow>
                         <ConfirmModal
                             isOpen={edgeModalOpen}
