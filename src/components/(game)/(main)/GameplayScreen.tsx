@@ -6,7 +6,7 @@ import React, { useState, useEffect, useCallback, useMemo, useContext } from 're
 import {
     ReactFlow, Controls, Background, BackgroundVariant, ConnectionLineType,
     EdgeProps, Node, Edge, useNodesState, useEdgesState, addEdge, BaseEdge,
-    getSmoothStepPath, Handle, Position
+    getSmoothStepPath, Handle, Position, useStore, useReactFlow
 } from '@xyflow/react';
 import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
@@ -183,29 +183,70 @@ interface DistanceIndicatorProps {
     targetY: number;
 }
 
+interface ClosestNode {
+    node: Node | null;
+    distance: number;
+}
+
 const DistanceIndicator: React.FC<DistanceIndicatorProps> = ({ sourceX, sourceY, targetX, targetY }) => {
-    const distance = Math.sqrt(Math.pow(targetX - sourceX, 2) + Math.pow(targetY - sourceY, 2));
+    const transform = useStore((state) => state.transform);
+    const { getNodes } = useReactFlow();
+    const [tX, tY, tScale] = transform;
+
+    // Convert screen coordinates to flow coordinates
+    const sourceFlowX = (sourceX - tX) / tScale;
+    const sourceFlowY = (sourceY - tY) / tScale;
+    const targetFlowX = (targetX - tX) / tScale;
+    const targetFlowY = (targetY - tY) / tScale;
+
+    // Get all nodes
+    const nodes = getNodes();
+
+    // Find the closest nodes to the source and target points
+    const sourceNode = nodes.reduce((closest: ClosestNode, node) => {
+        const dx = node.position.x - sourceFlowX;
+        const dy = node.position.y - sourceFlowY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < closest.distance ? { node, distance } : closest;
+    }, { node: null, distance: Infinity }).node;
+
+    const targetNode = nodes.reduce((closest: ClosestNode, node) => {
+        const dx = node.position.x - targetFlowX;
+        const dy = node.position.y - targetFlowY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < closest.distance ? { node, distance } : closest;
+    }, { node: null, distance: Infinity }).node;
+
+    // Calculate the distance using the same formula as in onConnect
+    const distance = sourceNode && targetNode
+        ? Math.sqrt(
+            Math.pow(targetNode.position.x - sourceNode.position.x, 2) +
+            Math.pow(targetNode.position.y - sourceNode.position.y, 2)
+        )
+        : 0;
+
+    // Calculate the midpoint for positioning the indicator
     const midX = (sourceX + targetX) / 2;
     const midY = (sourceY + targetY) / 2;
-  
+
     return (
-      <div
-        style={{
-          position: 'absolute',
-          left: midX,
-          top: midY,
-          transform: 'translate(-50%, -50%)',
-          background: 'red',
-          color: 'white',
-          padding: '2px 6px',
-          borderRadius: '4px',
-          fontSize: '12px',
-          pointerEvents: 'none',
-          zIndex: 150
-        }}
-      >
-        {Math.round(distance)} units
-      </div>
+        <div
+            style={{
+                position: 'absolute',
+                left: midX,
+                top: midY,
+                transform: 'translate(-50%, -50%)',
+                background: 'rgba(255, 0, 0, 0.7)',
+                color: 'white',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                pointerEvents: 'none',
+                zIndex: 1000
+            }}
+        >
+            {Math.round(distance)} units
+        </div>
     );
 };
 
@@ -221,6 +262,7 @@ const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: Cust
     const [ rotation, setRotation ] = useState(0);
     const [ isHovered, setIsHovered ] = useState(false);
     const [ floatingNumbers, setFloatingNumbers ] = useState([]);
+    const [ currentSupply, setCurrentSupply ] = useState(data.supply);
   
     useEffect(() => {
         const interval = setInterval(() => {
@@ -238,6 +280,10 @@ const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: Cust
             return () => clearInterval(interval);
         }
     }, [data.nodeType, isConnected, connectedEdgesCount, efficiency]);
+
+    useEffect(() => {
+        setCurrentSupply(data.supply);
+    }, [data.supply]);
   
     const removeFloatingNumber = useCallback((id: number) => {
         setFloatingNumbers(prev => prev.filter((num: any) => num.id !== id));
@@ -282,7 +328,7 @@ const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: Cust
         <div>
             <p><strong>{data.nodeType === 'Export' ? '🔴' : '🟢'} {data.displayName} (# {data.id})</strong></p>
             <p className='flex'>Type: <Icon size={18} style={{ color: color }} className='mx-1' /> {data.type}</p>
-            <p>Supply: {data.supply}/{data.maxSupply}</p>
+            <p>Supply: {currentSupply}/{data.maxSupply}</p>
             {data.nodeType === 'Connector' && (
                 <>  
                     <p>Connected Nodes: {connectNode?.join(', ') || 'None'}</p>
@@ -676,9 +722,10 @@ const GameplayScreen = () => {
             Math.pow(targetNode.position.x - sourceNode.position.x, 2) +
             Math.pow(targetNode.position.y - sourceNode.position.y, 2)
         );
-
+        console.log(distance)
+    
         if (distance > 200) {
-            alert('Connection distance exceeds 200 units. Unable to connect nodes.');
+            alert('Connection distance exceeds ' + distance.toFixed(0) + '/200 units. Unable to connect nodes.');
             return;
         }
         

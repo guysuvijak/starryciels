@@ -20,9 +20,9 @@ const Navbar = () => {
         <div className='flex w-full absolute z-50'>
             <div className='flex m-2 w-full'>
                 <div className='flex w-full sm:py-1'>
-                    <CustomResource Icon={GiMinerals} amount={10000} />
-                    <CustomResource Icon={SiFueler} amount={10000} />
-                    <CustomResource Icon={MdFoodBank} amount={10000} />
+                    <CustomResource Icon={GiMinerals} amount={0} />
+                    <CustomResource Icon={SiFueler} amount={0} />
+                    <CustomResource Icon={MdFoodBank} amount={0} />
                 </div>
                 <button onClick={() => {}} className='p-1 sm:p-2 bg-theme-button hover:bg-theme-button-h rounded-full'>
                     <AiFillSetting size={26} className='text-theme-title w-[22px] sm:w-[26px] h-auto' />
