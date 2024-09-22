@@ -392,7 +392,7 @@ const initialNodes: Node<NodeData>[] = [
             nodeType: 'Export', 
             id: '1', 
             displayName: 'Ore', 
-            size: 'medium',
+            size: 'small',
             supply: 1000,
             maxSupply: 1000,
             handlePositions: {
@@ -569,7 +569,7 @@ const CustomEdge: React.FC<CustomEdgeProps> = ({
 
 const initialEdges: Edge<EdgeData>[] = [];
 
-const GRID_SIZE = 12;
+const GRID_SIZE = 10;
 const NODE_SIZE = 50;
 
 const checkNodeCollision = (node: Node, otherNodes: Node[]): boolean => {
@@ -616,6 +616,8 @@ const GameplayScreen = () => {
     const [ connectionStart, setConnectionStart ] = useState({ x: 0, y: 0 });
     const [ mousePosition, setMousePosition ] = useState({ x: 0, y: 0 });
     const [ isConnecting, setIsConnecting ] = useState(false);
+    const [ temporaryNode, setTemporaryNode ] = useState<Node<NodeData> | null>(null);
+    const [ isNodeValid, setIsNodeValid ] = useState(true);
 
     const onConnectStart = useCallback((event: any, { nodeId, handleType, handleId }: any) => {
         const targetNode = nodes.find(n => n.id === nodeId);
@@ -724,7 +726,7 @@ const GameplayScreen = () => {
         );
         console.log(distance)
     
-        if (distance > 200) {
+        if (distance > 1000) {
             alert('Connection distance exceeds ' + distance.toFixed(0) + '/200 units. Unable to connect nodes.');
             return;
         }
@@ -992,6 +994,67 @@ const GameplayScreen = () => {
         )
     }), [getConnectedEdgesCount, calculateEfficiency]);
 
+    const createTemporaryNode = (nodeType: string) => {
+        const newNodeId = String(nodeIdCounter);
+        const centerX = window.innerWidth / 2;
+        const centerY = window.innerHeight / 2;
+        
+        const newNode: Node<NodeData> = {
+            id: newNodeId,
+            type: 'custom',
+            data: { 
+                label: `${nodeType}`, 
+                type: nodeType.replace('Import', '').replace('Connector', ''),
+                nodeType: nodeType === 'Connector' ? 'Connector' : 'Import',
+                id: newNodeId,
+                displayName: nodeDisplayNames[nodeType],
+                size: 'medium',
+                supply: 0,
+                maxSupply: 1000,
+                handlePositions: {
+                    target: Position.Left,
+                    ...(nodeType === 'Connector' ? { source: Position.Right } : {})
+                },
+                connectedNodes: [],
+                isTemporary: true
+            },
+            position: { x: centerX, y: centerY },
+            draggable: true,
+        };
+
+        setTemporaryNode(newNode);
+        setNodeIdCounter((prev) => prev + 1);
+    };
+
+    const onNodeDragStop = (event: React.MouseEvent, node: Node) => {
+        if (node.data.isTemporary) {
+            const updatedPosition = snapToGrid(node.position);
+            setTemporaryNode(prevNode => prevNode ? { ...prevNode, position: updatedPosition } : null);
+            checkNodeValidity(updatedPosition);
+        }
+    };
+
+    const checkNodeValidity = (position: { x: number, y: number }) => {
+        const isValid = !checkNodeCollision({ ...temporaryNode!, position }, nodes);
+        setIsNodeValid(isValid);
+    };
+
+    const confirmNodePlacement = () => {
+        if (temporaryNode && isNodeValid) {
+            const confirmedNode = {
+                ...temporaryNode,
+                data: { ...temporaryNode.data, isTemporary: false },
+                draggable: false
+            };
+            setNodes(prevNodes => [...prevNodes, confirmedNode]);
+            setTemporaryNode(null);
+        }
+    };
+
+    const cancelNodePlacement = () => {
+        setTemporaryNode(null);
+    };
+
     return (
         <NodeContext.Provider value={{ nodes }}>
             <div style={{ width: '100vw', height: '100vh' }} onMouseMove={onMouseMove}>
@@ -1009,9 +1072,10 @@ const GameplayScreen = () => {
                             onConnectStart={onConnectStart}
                             onConnectEnd={onConnectEnd}
                             nodesDraggable={false}
-                            nodes={nodes}
+                            nodes={[...nodes, ...(temporaryNode ? [temporaryNode] : [])]}
                             edges={edges}
                             onNodesChange={onNodesChange}
+                            onNodeDragStop={onNodeDragStop}
                             onConnect={onConnect}
                             onEdgeClick={onEdgeClick}
                             onNodeClick={onNodeClick}
@@ -1023,7 +1087,7 @@ const GameplayScreen = () => {
                             selectionKeyCode={null}
                         >
                             <Controls showInteractive={false} />
-                            <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+                            <Background variant={BackgroundVariant.Dots} gap={10} size={1} />
                             {isConnecting && (
                                 <DistanceIndicator
                                 sourceX={connectionStart.x}
@@ -1033,6 +1097,23 @@ const GameplayScreen = () => {
                                 />
                             )}
                         </ReactFlow>
+                        {temporaryNode && (
+                            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex space-x-4">
+                                <button 
+                                    className="px-4 py-2 bg-red-500 text-white rounded"
+                                    onClick={cancelNodePlacement}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    className={`px-4 py-2 ${isNodeValid ? 'bg-green-500' : 'bg-gray-500'} text-white rounded`}
+                                    onClick={confirmNodePlacement}
+                                    disabled={!isNodeValid}
+                                >
+                                    Confirm
+                                </button>
+                            </div>
+                        )}
                         <ConfirmModal
                             isOpen={edgeModalOpen}
                             onClose={handleCancelEdgeDelete}
@@ -1049,7 +1130,7 @@ const GameplayScreen = () => {
                         />
                     </div>
                 </div>
-                <Panel />
+                <Panel onCreateTemporaryNode={createTemporaryNode} />
                 <div style={{ position: 'absolute', left: 10, top: 10, zIndex: 30 }}>
                     <button onClick={addRandomNode} className='bg-white text-black px-2'>Add Random Node</button>
                 </div>
