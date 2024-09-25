@@ -28,5 +28,13 @@
         "description": "Choose the language you want to change.",
         "en": "English",
         "th": "Thai"
+    },
+    "CreateProfile": {
+        "header": "Create your profile",
+        "nickname": "Nickname",
+        "nickname-p": "Enter your nickname",
+        "require-1": "Nickname length 3-20 characters",
+        "require-2": "No special characters in the nickname (a-z, A-Z, 0-9)",
+        "create-button": "Create profile"
     }
 }
