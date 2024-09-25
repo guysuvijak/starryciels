@@ -33,7 +33,7 @@ export const useThemeStore = create<ThemeState>()(
 export const useGameStore = create<GameState>()(
     persist(
         (set) => ({
-            gameMenu: '',
+            gameMenu: 'profile',
             setGameMenu: (gameMenu) => set({ gameMenu }),
         }),
         {

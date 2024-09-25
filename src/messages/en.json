@@ -29,12 +29,18 @@
         "en": "English",
         "th": "Thai"
     },
-    "CreateProfile": {
-        "header": "Create your profile",
+    "Profile": {
+        "header-connect": "Connect wallet",
+        "description-connect": "You haven't connected wallet",
+        "header-create": "Create your profile",
+        "description-create": "This wallet does not have a profile",
+        "header-success": "Welcome Back!",
+        "description-success": "You already have a profile",
         "nickname": "Nickname",
         "nickname-p": "Enter your nickname",
         "require-1": "Nickname length 3-20 characters",
-        "require-2": "No special characters in the nickname (a-z, A-Z, 0-9)",
-        "create-button": "Create profile"
+        "require-2": "Nickname must only contain (a-z, A-Z, 0-9)",
+        "create-button": "Create profile",
+        "login-button": "Login"
     }
 }

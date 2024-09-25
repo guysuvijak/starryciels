@@ -73,7 +73,7 @@ const VideoGame = () => {
             <div className="max-w-4xl mx-auto">
                 <HeaderText title={'Gameplay Demo'} />
                 <div className="flex justify-center">
-                    <div className="w-full w-[640px] h-[360px]">
+                    <div className="w-[640px] h-[360px]">
                         <iframe
                             className="w-full h-full rounded-lg"
                             src="https://www.youtube.com/embed/H50Vkei4nD0"

@@ -12,7 +12,7 @@ export interface ThemeState {
     setIsThemeView: (isThemeView: boolean) => void;
 };
 
-type GameMenu = '';
+type GameMenu = 'profile' | 'game';
 
 export interface GameState {
     gameMenu: GameMenu;

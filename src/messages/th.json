@@ -29,12 +29,18 @@
         "en": "English",
         "th": "ภาษาไทย"
     },
-    "CreateProfile": {
-        "header": "สร้างโปรไฟล์ของคุณ",
+    "Profile": {
+        "header-connect": "เชื่อมต่อกระเป๋า",
+        "description-connect": "คุณยังไม่ได้เชื่อมต่อกระเป๋า",
+        "header-create": "สร้างโปรไฟล์ของคุณ",
+        "description-create": "กระเป๋านี้ยังไม่มีโปรไฟล์",
+        "header-success": "ยินดีต้อนรับ!",
+        "description-success": "คุณมีโปรไฟล์อยู่แล้ว",
         "nickname": "ชื่อเล่น",
         "nickname-p": "กรอกชื่อเล่นของคุณ",
         "require-1": "ความยาวชื่อเล่น 3-20 ตัวอักษร",
         "require-2": "ไม่มีอักษรพิเศษในชื่อเล่น (a-z, A-Z, 0-9)",
-        "create-button": "สร้างโปรไฟล์"
+        "create-button": "สร้างโปรไฟล์",
+        "login-button": "ล็อกอิน"
     }
 }
