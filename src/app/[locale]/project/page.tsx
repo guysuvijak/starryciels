@@ -6,8 +6,9 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { publicKey } from '@metaplex-foundation/umi';
 import { fetchCollection } from '@metaplex-foundation/mpl-core';
 
-import { CreateCollection, FetchCollection } from '@/metaplex/collection';
+import { CreateCollection, FetchCollection, CreateProfileCollection } from '@/metaplex/collection';
 import { CreateAsset, FetchAsset, FetchAssetByCollection, TransferAsset } from '@/metaplex/asset';
+import { CreateProfile, CheckProfile } from '@/metaplex/profile';
 import Web3Connect from '@/components/(global)/Web3Connect';
 
 const Project = () => {
@@ -32,7 +33,7 @@ const Project = () => {
 
     const fetchAsset = async () => {
         const result = await FetchAsset();
-        console.log('Asset URI:', result.uri);
+        console.log('Asset URI:', result);
         
         const base64Data = result.uri.split(',')[1];
         const decodedJson = JSON.parse(atob(base64Data));
@@ -49,12 +50,30 @@ const Project = () => {
         console.log(result)
     };
 
+    const CreateCreateCollection = async () => {
+        const result = await CreateProfileCollection();
+        console.log(result)
+    };
+
+    const CreateCreateProfile = async () => {
+        const result = await CreateProfile(wallet.publicKey, 'MeteorVIIx');
+        console.log(result);
+    };
+
+    const CheckCreateProfile = async () => {
+        const result = await CheckProfile(wallet.publicKey);
+        console.log(result);
+    };
+
     return (
         <div className='flex flex-col bg-red-400 p-4'>
             <Web3Connect />
             <div>
                 <button className='px-4 mx-2 bg-slate-500' onClick={() => handleClick()}>Create New Assets</button>
                 <button className='px-4 mx-2 bg-slate-500' onClick={() => projectFetch()}>Fetch Collection</button>
+                <button className='px-4 mx-2 bg-slate-500' onClick={() => CreateCreateCollection()}>Create Profile Collection</button>
+                <button className='px-4 mx-2 bg-slate-500' onClick={() => CreateCreateProfile()}>Create Profile</button>
+                <button className='px-4 mx-2 bg-slate-500' onClick={() => CheckCreateProfile()}>Check Profile</button>
             </div>
             <div>
                 <button className='px-4 mx-2 bg-slate-500' onClick={() => createAsset()}>Create Asset</button>

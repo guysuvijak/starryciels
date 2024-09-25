@@ -11,3 +11,10 @@ export interface ThemeState {
     isThemeView: boolean;
     setIsThemeView: (isThemeView: boolean) => void;
 };
+
+type GameMenu = '';
+
+export interface GameState {
+    gameMenu: GameMenu;
+    setGameMenu: (gameMenu: GameMenu) => void;
+};

@@ -75,6 +75,33 @@ export const CreateCollection = async () => {
     return { response, collectionAddress: signer.publicKey };
 };
 
+export const CreateProfileCollection = async () => {
+    const collectionSigner = generateSigner(umi);
+
+    const txConfig: TransactionBuilderSendAndConfirmOptions = {
+        send: { skipPreflight: true },
+        confirm: { commitment: 'processed' },
+    };
+
+    const metadata = {
+        "name": "StarryCiels Player Profile",
+        "symbol": "STCTPF",
+        "description": "StarryCiels Player Profile Collection",
+        "image": "https://starryciels.vercel.app/assets/metaplex/profile.png",
+        "external_url": "https://starryciels.vercel.app",
+    };
+    const metadataString = JSON.stringify(metadata);
+    const metadataBase64 = Buffer.from(metadataString).toString('base64');
+    const base64Uri = `data:application/json;base64,${metadataBase64}`;
+
+    const response = await createCollection(umi, {
+        collection: collectionSigner,
+        name: 'StarryCiels Player Profile',
+        uri: base64Uri,
+    }).sendAndConfirm(umi, txConfig);
+    return { response, collectionAddress: collectionSigner.publicKey };
+}
+
 export const FetchCollection = async () => {
     const response = await fetchCollection(umi, collectionAddress);
     return response;

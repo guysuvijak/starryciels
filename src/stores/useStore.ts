@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { LanguageState, ThemeState } from '@/types/(store)/BearStore';
+import { LanguageState, ThemeState, GameState } from '@/types/(store)/BearStore';
 
 export const useLanguageStore = create<LanguageState>()(
     persist(
@@ -25,6 +25,19 @@ export const useThemeStore = create<ThemeState>()(
         }),
         {
             name: 'theme-storage',
+            storage: createJSONStorage(() => localStorage)
+        }
+    )
+);
+
+export const useGameStore = create<GameState>()(
+    persist(
+        (set) => ({
+            gameMenu: '',
+            setGameMenu: (gameMenu) => set({ gameMenu }),
+        }),
+        {
+            name: 'game-storage',
             storage: createJSONStorage(() => localStorage)
         }
     )

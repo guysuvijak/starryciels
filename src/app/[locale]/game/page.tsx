@@ -3,6 +3,7 @@ import React from 'react';
 import { useRouter } from 'next-nprogress-bar';
 import { useTranslations } from 'next-intl';
 
+import CreateAccountScreen from '@/components/(game)/(main)/CreateAccountScreen';
 import GameplayScreen from '@/components/(game)/(main)/GameplayScreen';
 
 const Game = () => {
@@ -10,6 +11,7 @@ const Game = () => {
     
     return (
         <div className='flex h-full w-full justify-center items-center bg-theme-bg-1'>
+            <CreateAccountScreen />
             <GameplayScreen />
         </div>
     );

@@ -2,7 +2,7 @@
 import '@xyflow/react/dist/style.css';
 import 'react-tooltip/dist/react-tooltip.css';
 import Image from 'next/image';
-import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, useContext } from 'react';
 import {
     ReactFlow, Controls, Background, BackgroundVariant, ConnectionLineType,
     EdgeProps, Node, Edge, useNodesState, useEdgesState, addEdge, BaseEdge,
@@ -139,42 +139,42 @@ const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: a
     );
 };
 
-const FloatingNumber = ({ id, value, efficiency, onComplete }: FloatingNumberProps) => {
-    const [ position, setPosition ] = useState(0);
-  
+const FloatingNumber = React.memo(({ value, efficiency }: { value: number; efficiency: number }) => {
+    const [position, setPosition] = useState(0);
+    
     useEffect(() => {
-        const interval = setInterval(() => {
-            setPosition((prev) => {
-                if (prev <= -30) {
-                    clearInterval(interval);
-                    onComplete(id);
-                    return prev;
-                }
-                return prev - 1;
-            });
-        }, 16);
-        return () => clearInterval(interval);
-    }, [id, onComplete]);
+      const interval = setInterval(() => {
+        setPosition(prev => {
+          if (prev <= -30) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 50);
+      return () => clearInterval(interval);
+    }, []);
   
-    const displayValue = Math.max(0, value - Math.round(value * (100 - efficiency) / 100));
+    const displayValue = Math.max(0, value * (efficiency / 100));
   
     return (
-        <div
-            style={{
-                position: 'absolute',
-                top: `${position}px`,
-                transform: 'translateX(-50%)',
-                transition: 'top 0.3s ease-out',
-                opacity: 1 - Math.abs(position) / 30,
-                color: 'lime',
-                fontWeight: 'bold',
-                fontSize: '20px'
-            }}
-        >
-            +{displayValue * (efficiency / 100)}
-        </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: `${position}px`,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          opacity: 1 - Math.abs(position) / 30,
+          color: 'lime',
+          fontWeight: 'bold',
+          fontSize: '20px',
+          pointerEvents: 'none'
+        }}
+      >
+        +{displayValue.toFixed(2)}
+      </div>
     );
-};
+});
 
 interface DistanceIndicatorProps {
     sourceX: number;
@@ -255,132 +255,125 @@ interface CustomNodeProps {
     isConnected: boolean;
     connectedEdgesCount: number;
     efficiency: number;
+    updateNodeData: (id: string, newData: Partial<NodeData>) => void;
 }
 
-const CustomNode = ({ data, isConnected, connectedEdgesCount, efficiency }: CustomNodeProps) => {
-    const { nodes } = useContext(NodeContext);
-    const [ rotation, setRotation ] = useState(0);
-    const [ isHovered, setIsHovered ] = useState(false);
-    const [ floatingNumbers, setFloatingNumbers ] = useState([]);
-    const [ currentSupply, setCurrentSupply ] = useState(data.supply);
+const CustomNode: React.FC<CustomNodeProps> = React.memo(({ data, isConnected, connectedEdgesCount, efficiency, updateNodeData }) => {
+    const rotationRef = useRef(0);
+    const [isHovered, setIsHovered] = useState(false);
+    const lastUpdateTimeRef = useRef(Date.now());
+    const animationFrameRef = useRef<number>();
+  
+    const updateNodeRotation = useCallback(() => {
+      rotationRef.current = (rotationRef.current + 1) % 360;
+      const node = document.getElementById(`node-${data.id}`);
+      if (node) {
+        node.style.transform = `rotate(${rotationRef.current}deg) scale(${isHovered ? 1.2 : 1})`;
+      }
+      animationFrameRef.current = requestAnimationFrame(updateNodeRotation);
+    }, [data.id, isHovered]);
   
     useEffect(() => {
-        const interval = setInterval(() => {
-          setRotation((prevRotation) => (prevRotation + 1) % 360);
-        }, 50);
-    
-        return () => clearInterval(interval);
-    }, []);
-  
-    useEffect(() => {
-        if (data.nodeType === 'Import' && isConnected) {
-            const interval = setInterval(() => {
-                setFloatingNumbers((prev): any => [...prev, { id: Date.now(), value: connectedEdgesCount, efficiency }]);
-            }, 1000);
-            return () => clearInterval(interval);
+      animationFrameRef.current = requestAnimationFrame(updateNodeRotation);
+      return () => {
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
         }
-    }, [data.nodeType, isConnected, connectedEdgesCount, efficiency]);
-
-    useEffect(() => {
-        setCurrentSupply(data.supply);
-    }, [data.supply]);
+      };
+    }, [updateNodeRotation]);
   
-    const removeFloatingNumber = useCallback((id: number) => {
-        setFloatingNumbers(prev => prev.filter((num: any) => num.id !== id));
-    }, []);
-
-    let Icon: IconType;
-    let color: string;
-
-    const nodeSizes = {
-        small: 40,
-        medium: 60,
-        large: 80
-    };
-
-    const nodeSize = nodeSizes[data.size];
-
-    switch(data.type) {
+    useEffect(() => {
+      if (data.nodeType === 'Import' && isConnected) {
+        const interval = setInterval(() => {
+          const now = Date.now();
+          lastUpdateTimeRef.current = now;
+  
+          const resourceChange = connectedEdgesCount * (efficiency / 100);
+          updateNodeData(data.id, {
+            supply: Math.min(data.maxSupply, data.supply + resourceChange)
+          });
+        }, 1000);
+        return () => clearInterval(interval);
+      }
+    }, [data.id, data.nodeType, data.maxSupply, data.supply, isConnected, connectedEdgesCount, efficiency, updateNodeData]);
+  
+    const nodeSize = useMemo(() => {
+      const sizes = { small: 40, medium: 60, large: 80 };
+      return sizes[data.size];
+    }, [data.size]);
+  
+    const iconProps = useMemo(() => {
+      let Icon: IconType;
+      let color: string;
+      switch(data.type) {
         case 'Ore':
-            Icon = GiWoodPile;
-            color = '#d68d48';
-            break;
+          Icon = GiWoodPile;
+          color = '#d68d48';
+          break;
         case 'Fuel':
-            Icon = GiStonePile;
-            color = '#b8baba';
-            break;
+          Icon = GiStonePile;
+          color = '#b8baba';
+          break;
         case 'Food':
-            Icon = GiCoalWagon;
-            color = '#525553';
-            break;
+          Icon = GiCoalWagon;
+          color = '#525553';
+          break;
         default:
-            Icon = GiWoodPile;
-            color = '#FFFFFF';
-            break;
-    }
-
-    const connectNode = [...new Set(data.connectedNodes)].map(id => {
-        const node = nodes.find(n => n.id === id.toString());
-        return node ? node.data.displayName : null;
-    });
-
-    const tooltipContent = (
-        <div>
-            <p><strong>{data.nodeType === 'Export' ? '🔴' : '🟢'} {data.displayName} (# {data.id})</strong></p>
-            <p className='flex'>Type: <Icon size={18} style={{ color: color }} className='mx-1' /> {data.type}</p>
-            <p>Supply: {currentSupply}/{data.maxSupply}</p>
-            {data.nodeType === 'Connector' && (
-                <>  
-                    <p>Connected Nodes: {connectNode?.join(', ') || 'None'}</p>
-                </>
-            )}
-        </div>
-    );
-    
+          Icon = GiWoodPile;
+          color = '#FFFFFF';
+      }
+      return { Icon, color };
+    }, [data.type]);
+  
+    const tooltipContent = useMemo(() => (
+      <div>
+        <p><strong>{data.nodeType === 'Export' ? '🔴' : '🟢'} {data.displayName} (# {data.id})</strong></p>
+        <p className='flex'>Type: <iconProps.Icon size={18} style={{ color: iconProps.color }} className='mx-1' /> {data.type}</p>
+        <p>Supply: {data.supply.toFixed(2)}/{data.maxSupply}</p>
+        {data.nodeType === 'Connector' && data.connectedNodes && (
+          <p>Connected Nodes: {data.connectedNodes.join(', ') || 'None'}</p>
+        )}
+      </div>
+    ), [data, iconProps]);
+  
     return (
-        <>
-            {(data.nodeType === 'Export' || data.nodeType === 'Connector') && (
-                <Handle type="source" position={data.handlePositions.source || Position.Right} style={{ right: -10, width: 10, height: 10 }} />
-            )}
-            {(data.nodeType === 'Import' || data.nodeType === 'Connector') && (
-                <Handle type="target" position={data.handlePositions.target || Position.Left} style={{ left: -10, width: 10, height: 10 }} />
-            )}
-            <div
-                data-tooltip-id={`tooltip-${data.id}`}
-                style={{
-                    width: nodeSize,
-                    height: nodeSize,
-                    borderRadius: '100%',
-                    overflow: 'hidden',
-                    border: data.nodeType === 'Export' ? '0px solid green' : '0px solid blue',
-                    transform: `rotate(${rotation}deg) scale(${isHovered ? 1.2 : 1})`,
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                    boxShadow: isHovered ? '0 0 20px 5px rgba(255, 255, 255, 0.7)' : 'none'
-                }}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-            >
-                <Image
-                    src={nodeImages[`${data.type}${data.nodeType}` as keyof typeof nodeImages]}
-                    alt={`${data.type} ${data.nodeType}`}
-                    width={200} height={200}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    priority
-                />
-            </div>
-            <Tooltip id={`tooltip-${data.id}`} render={() => tooltipContent} />
-            {floatingNumbers.map((num: any) => (
-                <FloatingNumber 
-                    key={num.id} 
-                    id={num.id} 
-                    value={num.value} 
-                    efficiency={num.efficiency}
-                    onComplete={removeFloatingNumber} 
-                />
-            ))}
-        </>
+      <>
+        {(data.nodeType === 'Export' || data.nodeType === 'Connector') && (
+          <Handle type="source" position={data.handlePositions.source || Position.Right} style={{ right: -10, width: 10, height: 10 }} />
+        )}
+        {(data.nodeType === 'Import' || data.nodeType === 'Connector') && (
+          <Handle type="target" position={data.handlePositions.target || Position.Left} style={{ left: -10, width: 10, height: 10 }} />
+        )}
+        <div
+          id={`node-${data.id}`}
+          data-tooltip-id={`tooltip-${data.id}`}
+          style={{
+            width: nodeSize,
+            height: nodeSize,
+            borderRadius: '100%',
+            overflow: 'hidden',
+            transition: 'box-shadow 0.3s ease',
+            boxShadow: isHovered ? '0 0 20px 5px rgba(255, 255, 255, 0.7)' : 'none'
+          }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <Image
+            src={nodeImages[`${data.type}${data.nodeType}` as keyof typeof nodeImages]}
+            alt={`${data.type} ${data.nodeType}`}
+            width={200}
+            height={200}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            priority
+          />
+        </div>
+        <Tooltip id={`tooltip-${data.id}`} render={() => tooltipContent} />
+        {isConnected && data.nodeType === 'Import' && (
+          <FloatingNumber value={connectedEdgesCount} efficiency={efficiency} />
+        )}
+      </>
     );
-};
+});
 
 const initialNodes: Node<NodeData>[] = [
     {
@@ -983,6 +976,14 @@ const GameplayScreen = () => {
         console.warn('Could not find a valid position for the new node');
     };
 
+    const updateNodeData = useCallback((id: string, newData: Partial<NodeData>) => {
+        setNodes((nds) =>
+          nds.map((node) =>
+            node.id === id ? { ...node, data: { ...node.data, ...newData } } : node
+          )
+        );
+    }, [setNodes]);
+    
     const nodeTypes = useMemo(() => ({
         custom: (props: any) => (
           <CustomNode
@@ -990,6 +991,7 @@ const GameplayScreen = () => {
             isConnected={getConnectedEdgesCount(props.id) > 0}
             connectedEdgesCount={getConnectedEdgesCount(props.id)}
             efficiency={calculateEfficiency(props.id)}
+            updateNodeData={updateNodeData}
           />
         )
     }), [getConnectedEdgesCount, calculateEfficiency]);

@@ -1,5 +1,5 @@
 import { TransactionBuilderSendAndConfirmOptions, publicKey, generateSigner } from '@metaplex-foundation/umi';
-import { fetchAssetsByCollection, fetchCollection, create, fetchAsset, ruleSet, transfer } from '@metaplex-foundation/mpl-core';
+import { fetchAssetsByCollection, createCollection, fetchCollection, create, fetchAsset, ruleSet, transfer } from '@metaplex-foundation/mpl-core';
 import { umi } from '@/utils/umi';
 
 const creator1 = publicKey('HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH');
@@ -49,6 +49,7 @@ export const CreateAsset = async () => {
         name: 'StarryCiels Planet #1',
         uri: base64Uri,
         asset: assetSigner,
+        owner: publicKey('HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH'),
         collection: collection,
         plugins: [
             {
@@ -68,7 +69,7 @@ export const CreateAsset = async () => {
 };
 
 export const FetchAsset = async () => {
-    const asset = await fetchAsset(umi, '3KSYv6FkHVzfmxLAfJi35PZNoHajix4RA6Tbze66YjTW', {
+    const asset = await fetchAsset(umi, '3upoNyE7ZZ5DuSSjSd19gJt3wWT3XDxTUeKYvxLoYkYu', {
         skipDerivePlugins: false,
     });
     return asset;
