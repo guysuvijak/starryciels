@@ -8,6 +8,7 @@ require('@solana/wallet-adapter-react-ui/styles.css');
 
 import ProfileScreen from '@/components/(game)/(main)/ProfileScreen';
 import GameplayScreen from '@/components/(game)/(main)/GameplayScreen';
+import MotherScreen from '@/components/(game)/(main)/MotherScreen';
 
 const Game = () => {
     const router = useRouter();
@@ -28,11 +29,9 @@ const Game = () => {
                 <div>Loading ...</div>
             ) : (
                 <>
-                    {(!wallet.connected || gameMenu !== 'game') ? (
-                        <ProfileScreen />
-                    ) : (
-                        <GameplayScreen />
-                    )}
+                    {gameMenu === 'profile' && <ProfileScreen />}
+                    {(wallet.connected && gameMenu === 'mother') && <MotherScreen />}
+                    {(wallet.connected && gameMenu === 'game') && <GameplayScreen />}
                 </>
             )}
         </div>

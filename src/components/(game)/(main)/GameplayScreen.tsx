@@ -2,7 +2,7 @@
 import '@xyflow/react/dist/style.css';
 import 'react-tooltip/dist/react-tooltip.css';
 import Image from 'next/image';
-import React, { useState, useEffect, useCallback, useMemo, useRef, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
     ReactFlow, Controls, Background, BackgroundVariant, ConnectionLineType,
     EdgeProps, Node, Edge, useNodesState, useEdgesState, addEdge, BaseEdge,
@@ -12,6 +12,7 @@ import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
 import { GiWoodPile, GiStonePile } from 'react-icons/gi';
 import { GiCoalWagon } from 'react-icons/gi';
+import { useGameStore } from '@/stores/useStore';
 import { IconType } from 'react-icons';
 
 import Navbar from './Navbar';
@@ -73,13 +74,6 @@ const nodeImages = {
     SpaceshipSpaceship: '/assets/images/spaceship.webp'
 };
 
-interface FloatingNumberProps {
-    id: number;
-    value: number;
-    efficiency: number;
-    onComplete: (id: number) => void;
-}
-
 const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
     if (!isOpen) return null;
   
@@ -107,6 +101,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
 };
 
 const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: any) => {
+    const { setGameMenu } = useGameStore();
     if (!isOpen) return null;
   
     return (
@@ -122,7 +117,7 @@ const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: a
             </button>
             <button
               className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              onClick={onDetail}
+              onClick={() => node?.id == 0 ? setGameMenu('mother') : onDetail}
             >
               Detail
             </button>
@@ -1151,6 +1146,7 @@ const GameplayScreen = () => {
                     <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg3.png)', backgroundSize: 'cover', zIndex: 3 }} />
                     <div className='absolute z-50 top-0 bottom-0 left-0 right-0'>
                         <ReactFlow
+                            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
                             snapToGrid={true}
                             snapGrid={[GRID_SIZE, GRID_SIZE]}
                             onConnectStart={onConnectStart}

@@ -128,7 +128,7 @@ const ProfileScreen = () => {
         
         return (
             <form onSubmit={handleSubmit} className='flex flex-col items-center mt-2'>
-                <div className='flex'>
+                <div className='flex self-start'>
                     <p className='flex font-medium self-start mb-1'>{t('nickname')}</p>
                     <p className='pl-1 text-red-500'>{'*'}</p>
                 </div>
