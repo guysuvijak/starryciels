@@ -1,17 +1,12 @@
-import { TransactionBuilderSendAndConfirmOptions, publicKey, generateSigner } from '@metaplex-foundation/umi';
-import { fetchAssetsByCollection, createCollection, fetchCollection, create, fetchAsset, ruleSet, transfer } from '@metaplex-foundation/mpl-core';
-import { umi } from '@/utils/umi';
+import { publicKey, generateSigner } from '@metaplex-foundation/umi';
+import { fetchAssetsByCollection, fetchCollection, create, fetchAsset, ruleSet, transfer } from '@metaplex-foundation/mpl-core';
+import { umi, txConfig } from '@/utils/umi';
 
 const creator1 = publicKey('HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH');
-const collectionAddress = publicKey('Abku8gXwJqxhV2tDnffUnkUGjqdbsi3WWEQhZf2LTwuQ');
+const collectionAddress = publicKey('49CHNbDr3dnb64zDS3qiQiSvm3UWWtRetjTt39FDsA4k');
 
 export const CreateAsset = async () => {
     const assetSigner = generateSigner(umi);
-
-    const txConfig: TransactionBuilderSendAndConfirmOptions = {
-        send: { skipPreflight: true },
-        confirm: { commitment: 'processed' },
-    };
 
     const collection = await fetchCollection(umi, collectionAddress);
 
@@ -76,11 +71,6 @@ export const FetchAsset = async () => {
 };
 
 export const TransferAsset = async () => {
-    const txConfig: TransactionBuilderSendAndConfirmOptions = {
-        send: { skipPreflight: true },
-        confirm: { commitment: 'processed' },
-    };
-
     const result = await transfer(umi, {
         asset: 'GgK2ipro24HmDom5mWThqdFCqZ9DzrCbjetQ3bsw2CG6' as any,
         newOwner: creator1,

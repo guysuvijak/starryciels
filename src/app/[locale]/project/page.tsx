@@ -15,7 +15,7 @@ const Project = () => {
     const [decodedData, setDecodedData] = useState<any>(null);
 
     const projectFetch = async () => {
-        const collectionAddress = publicKey('Abku8gXwJqxhV2tDnffUnkUGjqdbsi3WWEQhZf2LTwuQ');
+        const collectionAddress = publicKey('49CHNbDr3dnb64zDS3qiQiSvm3UWWtRetjTt39FDsA4k');
         const collection = await fetchCollection(umi, collectionAddress);
         console.log(collection)
     };
