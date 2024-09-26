@@ -35,6 +35,8 @@ export const useGameStore = create<GameState>()(
         (set) => ({
             gameMenu: 'profile',
             setGameMenu: (gameMenu) => set({ gameMenu }),
+            profilePublic: null,
+            setProfilePublic: (profilePublic) => set({ profilePublic })
         }),
         {
             name: 'game-storage',

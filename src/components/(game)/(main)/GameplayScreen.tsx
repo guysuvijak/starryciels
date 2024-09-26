@@ -25,8 +25,8 @@ export const NodeContext = React.createContext<NodeContextType>({ nodes: [] });
 
 const resourceTypes = ['Ore', 'Fuel', 'Food', 'Connector'];
 
-type ResourceType = typeof resourceTypes[number];
-type NodeType = 'Export' | 'Import' | 'Connector';
+type ResourceType = typeof resourceTypes[number] | 'Spaceship';
+type NodeType = 'Export' | 'Import' | 'Connector' | 'Spaceship';
 
 interface NodeData {
     id: string;
@@ -42,7 +42,7 @@ interface NodeData {
     connectedNodes?: string[];
     handlePositions: {
         source?: Position;
-        target?: Position;
+        target?: Position | Position[];
     };
     [key: string]: unknown;
 }
@@ -59,6 +59,7 @@ const nodeDisplayNames: Record<string, string> = {
     'FuelExport': 'Fuel',
     'FoodImport': 'Food Station',
     'FoodExport': 'Food',
+    'SpaceshipSpaceship': 'Mother Ship',
 };
 
 const nodeImages = {
@@ -68,7 +69,8 @@ const nodeImages = {
     FuelImport: '/assets/images/fuel-station.webp',
     FoodExport: '/assets/images/coal-export.png',
     FoodImport: '/assets/images/food-station.webp',
-    ConnectorConnector: '/assets/images/connector.gif'
+    ConnectorConnector: '/assets/images/connector.gif',
+    SpaceshipSpaceship: '/assets/images/spaceship.webp'
 };
 
 interface FloatingNumberProps {
@@ -265,13 +267,19 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ data, isConnected, c
     const animationFrameRef = useRef<number>();
   
     const updateNodeRotation = useCallback(() => {
-      rotationRef.current = (rotationRef.current + 1) % 360;
-      const node = document.getElementById(`node-${data.id}`);
-      if (node) {
-        node.style.transform = `rotate(${rotationRef.current}deg) scale(${isHovered ? 1.2 : 1})`;
-      }
-      animationFrameRef.current = requestAnimationFrame(updateNodeRotation);
-    }, [data.id, isHovered]);
+        const now = Date.now();
+        const deltaTime = now - lastUpdateTimeRef.current;
+        lastUpdateTimeRef.current = now;
+        
+        const rotationSpeed = data.nodeType === 'Spaceship' ? 0.001 : 0.005;
+        
+        rotationRef.current = (rotationRef.current + rotationSpeed * deltaTime) % 360;
+        const node = document.getElementById(`node-${data.id}`);
+        if (node) {
+          node.style.transform = `rotate(${rotationRef.current}deg) scale(${isHovered ? 1.2 : 1})`;
+        }
+        animationFrameRef.current = requestAnimationFrame(updateNodeRotation);
+      }, [data.id, data.nodeType, isHovered]);
   
     useEffect(() => {
       animationFrameRef.current = requestAnimationFrame(updateNodeRotation);
@@ -338,12 +346,36 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ data, isConnected, c
   
     return (
       <>
-        {(data.nodeType === 'Export' || data.nodeType === 'Connector') && (
-          <Handle type="source" position={data.handlePositions.source || Position.Right} style={{ right: -10, width: 10, height: 10 }} />
-        )}
-        {(data.nodeType === 'Import' || data.nodeType === 'Connector') && (
-          <Handle type="target" position={data.handlePositions.target || Position.Left} style={{ left: -10, width: 10, height: 10 }} />
-        )}
+        {data.nodeType === 'Spaceship' && Array.isArray(data.handlePositions.target) && data.handlePositions.target.map((position) => (
+                <Handle 
+                    key={position}
+                    type="target" 
+                    position={position} 
+                    id={`${position}-handle`}  // เพิ่ม id ที่เป็นเอกลักษณ์
+                    style={{ 
+                        [position === Position.Left ? 'left' : position === Position.Right ? 'right' : '']: -10,
+                        [position === Position.Top ? 'top' : position === Position.Bottom ? 'bottom' : '']: -10,
+                        width: 10, 
+                        height: 10 
+                    }} 
+                />
+            ))}
+            {(data.nodeType === 'Export' || data.nodeType === 'Connector') && (
+                <Handle 
+                    type="source" 
+                    position={data.handlePositions.source || Position.Right} 
+                    id={`${data.handlePositions.source || Position.Right}-handle`}
+                    style={{ right: -10, width: 10, height: 10 }} 
+                />
+            )}
+            {(data.nodeType === 'Import' || data.nodeType === 'Connector') && data.handlePositions.target && !Array.isArray(data.handlePositions.target) && (
+                <Handle 
+                    type="target" 
+                    position={data.handlePositions.target} 
+                    id={`${data.handlePositions.target}-handle`}
+                    style={{ left: -10, width: 10, height: 10 }} 
+                />
+            )}
         <div
           id={`node-${data.id}`}
           data-tooltip-id={`tooltip-${data.id}`}
@@ -376,6 +408,24 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ data, isConnected, c
 });
 
 const initialNodes: Node<NodeData>[] = [
+    {
+        id: '0',
+        type: 'custom',
+        data: { 
+            label: 'Spaceship', 
+            type: 'Spaceship', 
+            nodeType: 'Spaceship', 
+            id: '0', 
+            displayName: 'Mother Ship', 
+            size: 'large',
+            supply: 0,
+            maxSupply: 5000,
+            handlePositions: {
+                target: [Position.Left, Position.Right, Position.Top, Position.Bottom]
+            }
+        },
+        position: { x: 0, y: 0 },
+    },
     {
         id: '1',
         type: 'custom',
@@ -490,7 +540,10 @@ const initialNodes: Node<NodeData>[] = [
     },
 ];
 
-interface CustomEdgeProps extends EdgeProps {}
+interface CustomEdgeProps extends EdgeProps {
+    sourceHandle?: string | null;
+    targetHandle?: string | null;
+}
 
 const CustomEdge: React.FC<CustomEdgeProps> = ({
     id,
@@ -502,16 +555,18 @@ const CustomEdge: React.FC<CustomEdgeProps> = ({
     targetY,
     sourcePosition,
     targetPosition,
+    sourceHandle,
+    targetHandle,
     style = {},
     data,
 }) => {
     const [edgePath] = getSmoothStepPath({
         sourceX,
         sourceY,
-        sourcePosition,
+        sourcePosition: sourceHandle ? sourceHandle as Position : sourcePosition,
         targetX,
         targetY,
-        targetPosition
+        targetPosition: targetHandle ? targetHandle as Position : targetPosition
     });
   
     const trafficLevel: any = data?.trafficLevel || 0;
@@ -723,6 +778,16 @@ const GameplayScreen = () => {
             alert('Connection distance exceeds ' + distance.toFixed(0) + '/200 units. Unable to connect nodes.');
             return;
         }
+
+        let sourcePosition = params.sourceHandle;
+        let targetPosition = params.targetHandle;
+        
+        if (sourceNode.data.nodeType === 'Spaceship') {
+            sourcePosition = params.sourceHandle;
+        }
+        if (targetNode.data.nodeType === 'Spaceship') {
+            targetPosition = params.targetHandle;
+        }
         
         const isValidConnection = (
             (sourceNode.data.type === targetNode.data.type &&
@@ -733,7 +798,11 @@ const GameplayScreen = () => {
             (sourceNode.data.nodeType === 'Connector' &&
              targetNode.data.nodeType === 'Import') ||
             (sourceNode.data.nodeType === 'Connector' &&
-             targetNode.data.nodeType === 'Connector')
+             targetNode.data.nodeType === 'Connector') ||
+            (sourceNode.data.nodeType === 'Export' &&
+             targetNode.data.nodeType === 'Spaceship') ||
+            (sourceNode.data.nodeType === 'Spaceship' &&
+             targetNode.data.nodeType === 'Import')
         );
     
         if (isValidConnection) {
@@ -743,6 +812,17 @@ const GameplayScreen = () => {
             if (existingEdge && sourceNode.data.nodeType === 'Export') {
                 alert('Export node can only have one connection.');
                 return;
+            }
+
+            if (sourceNode.data.nodeType === 'Spaceship' || targetNode.data.nodeType === 'Spaceship') {
+                const spaceshipNode = sourceNode.data.nodeType === 'Spaceship' ? sourceNode : targetNode;
+                const connectedEdges = edges.filter(edge => 
+                    edge.source === spaceshipNode.id || edge.target === spaceshipNode.id
+                );
+                if (connectedEdges.length >= 4) {
+                    alert('Spaceship can have a maximum of 4 connections.');
+                    return;
+                }
             }
     
             const maxConnectorConnections = 3;
@@ -760,7 +840,9 @@ const GameplayScreen = () => {
             const newEdge = { 
                 ...params, 
                 type: 'custom',
-                data: { trafficLevel: 0 }
+                data: { trafficLevel: 0 },
+                sourceHandle: sourcePosition,
+                targetHandle: targetPosition
             };
     
             setEdges((eds) => {

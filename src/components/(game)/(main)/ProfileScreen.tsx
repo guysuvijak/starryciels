@@ -10,9 +10,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/useStore';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
-import { CheckProfile, CreateProfile } from '@/metaplex/profile';
-import { CreateAsset, FetchAsset } from '@/metaplex/asset';
-import { umi } from '@/utils/umi';
+import { CheckProfile, CreateProfile, UpdateProfile } from '@/metaplex/profile';
 import { decodeAndParseJSON } from '@/utils/decode';
 
 const WalletMultiButton = dynamic(
@@ -22,7 +20,7 @@ const WalletMultiButton = dynamic(
 
 const ProfileScreen = () => {
     const t = useTranslations('Profile');
-    const { setGameMenu } = useGameStore();
+    const { setGameMenu, setProfilePublic } = useGameStore();
     const wallet = useWallet();
     const walletConnect = wallet.connected;
 
@@ -33,6 +31,7 @@ const ProfileScreen = () => {
     const [ isProfile, setIsProfile ] = useState(false);
     const [ isCreateLoading, setIsCreateLoading ] = useState(false);
     const [ profileData, setProfileData ] = useState<any>(null);
+    const [ error, setError ] = useState('');
 
     const isValid = (isLengthValid && isCharValid) ? true : false;
 
@@ -49,30 +48,44 @@ const ProfileScreen = () => {
         setIsLoading(true);
         if (walletConnect) {
             try {
-                const response = await CheckProfile(wallet.publicKey);
+                const response = await CheckProfile(String(wallet.publicKey));
                 if(response[0].publicKey !== null) {
                     const decodedData = decodeAndParseJSON(response[0].uri);
                     setProfileData({...response[0], decodedUri: decodedData});
+                    setProfilePublic(response[0].publicKey);
                     setIsProfile(true);
                 }
             } catch (error) {
                 setIsProfile(false);
+                setProfilePublic(null);
             }
         } else {
             setIsProfile(false);
             setProfileData(null);
+            setProfilePublic(null);
         }
         setIsLoading(false);
+    };
+
+    const updatePro = async () => {
+        const response = await UpdateProfile(String(wallet.publicKey), "D8HetHNy1aVekssRBB4JHSVbera171qbrg47upJth8dd");
+        console.log(response)
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isValid) {
             setIsCreateLoading(true);
-            const response = await CreateProfile(wallet, nickName);
-            console.log(response);
-            setIsCreateLoading(false);
-            checkProfile();
+            try {
+                const response = await CreateProfile(String(wallet.publicKey), nickName);
+                if(response) {
+                    setIsCreateLoading(false);
+                    checkProfile();
+                }
+            } catch (err: unknown) {
+                setError(String(err));
+                setIsCreateLoading(false);
+            }
         }
     };
 
@@ -115,7 +128,10 @@ const ProfileScreen = () => {
         
         return (
             <form onSubmit={handleSubmit} className='flex flex-col items-center mt-2'>
-                <p className='flex font-medium self-start mb-1'>{t('nickname')} <p className='pl-1 text-red-500'>{'*'}</p></p>
+                <div className='flex'>
+                    <p className='flex font-medium self-start mb-1'>{t('nickname')}</p>
+                    <p className='pl-1 text-red-500'>{'*'}</p>
+                </div>
                 <input
                     ref={inputRef}
                     type='text'
@@ -137,6 +153,7 @@ const ProfileScreen = () => {
                 >
                     {isCreateLoading ? <SpinningLoader /> : t('create-button')}
                 </button>
+                {error !== '' && <p className='text-red-500'>{error}</p>}
             </form>
         )
     };
@@ -156,6 +173,9 @@ const ProfileScreen = () => {
                     onClick={() => setGameMenu('game')}
                 >
                     {t('login-button')}
+                </button>
+                <button onClick={() => updatePro()}>
+                    Update
                 </button>
             </div>
         )

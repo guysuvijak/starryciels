@@ -17,4 +17,6 @@ type GameMenu = 'profile' | 'game';
 export interface GameState {
     gameMenu: GameMenu;
     setGameMenu: (gameMenu: GameMenu) => void;
+    profilePublic: string | null;
+    setProfilePublic: (profilePublic: string | null) => void;
 };
