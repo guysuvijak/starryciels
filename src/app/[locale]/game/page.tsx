@@ -31,7 +31,7 @@ const Game = () => {
                 <>
                     {gameMenu === 'profile' && <ProfileScreen />}
                     {(wallet.connected && gameMenu === 'mother') && <MotherScreen />}
-                    {(wallet.connected && gameMenu === 'game') && <GameplayScreen />}
+                    {(wallet.connected && (gameMenu === 'game' || gameMenu === 'mother')) && <GameplayScreen />}
                 </>
             )}
         </div>

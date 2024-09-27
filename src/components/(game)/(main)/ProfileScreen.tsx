@@ -174,9 +174,11 @@ const ProfileScreen = () => {
                 >
                     {t('login-button')}
                 </button>
-                <button onClick={() => updatePro()}>
-                    Update
-                </button>
+                {wallet.publicKey == 'HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH' as any &&
+                    <button onClick={() => updatePro()}>
+                        Update
+                    </button>
+                }
             </div>
         )
     };

@@ -2,7 +2,7 @@
 import '@xyflow/react/dist/style.css';
 import 'react-tooltip/dist/react-tooltip.css';
 import Image from 'next/image';
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
     ReactFlow, Controls, Background, BackgroundVariant, ConnectionLineType,
     EdgeProps, Node, Edge, useNodesState, useEdgesState, addEdge, BaseEdge,
@@ -10,10 +10,7 @@ import {
 } from '@xyflow/react';
 import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
-import { GiWoodPile, GiStonePile } from 'react-icons/gi';
-import { GiCoalWagon } from 'react-icons/gi';
 import { useGameStore } from '@/stores/useStore';
-import { IconType } from 'react-icons';
 
 import Navbar from './Navbar';
 import Panel from './Panel';
@@ -64,11 +61,11 @@ const nodeDisplayNames: Record<string, string> = {
 };
 
 const nodeImages = {
-    OreExport: '/assets/images/wood-export.png',
+    OreExport: '/assets/images/node-ore.webp',
     OreImport: '/assets/images/ore-station.webp',
-    FuelExport: '/assets/images/stone-export.png',
+    FuelExport: '/assets/images/node-fuel.webp',
     FuelImport: '/assets/images/fuel-station.webp',
-    FoodExport: '/assets/images/coal-export.png',
+    FoodExport: '/assets/images/node-food.webp',
     FoodImport: '/assets/images/food-station.webp',
     ConnectorConnector: '/assets/images/connector.gif',
     SpaceshipSpaceship: '/assets/images/spaceship.webp'
@@ -256,41 +253,11 @@ interface CustomNodeProps {
 }
 
 const CustomNode: React.FC<CustomNodeProps> = React.memo(({ data, isConnected, connectedEdgesCount, efficiency, updateNodeData }) => {
-    const rotationRef = useRef(0);
-    const [isHovered, setIsHovered] = useState(false);
-    const lastUpdateTimeRef = useRef(Date.now());
-    const animationFrameRef = useRef<number>();
-  
-    const updateNodeRotation = useCallback(() => {
-        const now = Date.now();
-        const deltaTime = now - lastUpdateTimeRef.current;
-        lastUpdateTimeRef.current = now;
-        
-        const rotationSpeed = data.nodeType === 'Spaceship' ? 0.001 : 0.005;
-        
-        rotationRef.current = (rotationRef.current + rotationSpeed * deltaTime) % 360;
-        const node = document.getElementById(`node-${data.id}`);
-        if (node) {
-          node.style.transform = `rotate(${rotationRef.current}deg) scale(${isHovered ? 1.2 : 1})`;
-        }
-        animationFrameRef.current = requestAnimationFrame(updateNodeRotation);
-      }, [data.id, data.nodeType, isHovered]);
-  
-    useEffect(() => {
-      animationFrameRef.current = requestAnimationFrame(updateNodeRotation);
-      return () => {
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current);
-        }
-      };
-    }, [updateNodeRotation]);
+    const [ isHovered, setIsHovered ] = useState(false);
   
     useEffect(() => {
       if (data.nodeType === 'Import' && isConnected) {
         const interval = setInterval(() => {
-          const now = Date.now();
-          lastUpdateTimeRef.current = now;
-  
           const resourceChange = connectedEdgesCount * (efficiency / 100);
           updateNodeData(data.id, {
             supply: Math.min(data.maxSupply, data.supply + resourceChange)
@@ -306,32 +273,27 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ data, isConnected, c
     }, [data.size]);
   
     const iconProps = useMemo(() => {
-      let Icon: IconType;
-      let color: string;
+      let Icon: string;
       switch(data.type) {
         case 'Ore':
-          Icon = GiWoodPile;
-          color = '#d68d48';
+          Icon = 'ore';
           break;
         case 'Fuel':
-          Icon = GiStonePile;
-          color = '#b8baba';
+          Icon = 'fuel';
           break;
         case 'Food':
-          Icon = GiCoalWagon;
-          color = '#525553';
+          Icon = 'food';
           break;
         default:
-          Icon = GiWoodPile;
-          color = '#FFFFFF';
+          Icon = '';
       }
-      return { Icon, color };
+      return { Icon };
     }, [data.type]);
   
     const tooltipContent = useMemo(() => (
       <div>
         <p><strong>{data.nodeType === 'Export' ? '🔴' : '🟢'} {data.displayName} (# {data.id})</strong></p>
-        <p className='flex'>Type: <iconProps.Icon size={18} style={{ color: iconProps.color }} className='mx-1' /> {data.type}</p>
+        <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={18} height={18} className='mx-1 w-[18px] h-[18px]' />} {data.type}</p>
         <p>Supply: {data.supply.toFixed(2)}/{data.maxSupply}</p>
         {data.nodeType === 'Connector' && data.connectedNodes && (
           <p>Connected Nodes: {data.connectedNodes.join(', ') || 'None'}</p>
@@ -390,7 +352,7 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ data, isConnected, c
             alt={`${data.type} ${data.nodeType}`}
             width={200}
             height={200}
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', padding: 5 }}
             priority
           />
         </div>
@@ -532,6 +494,24 @@ const initialNodes: Node<NodeData>[] = [
             }
         },
         position: { x: 100, y: 200 },
+    },
+    {
+        id: '7',
+        type: 'custom',
+        data: { 
+            label: 'Food Export', 
+            type: 'Food', 
+            nodeType: 'Export', 
+            id: '7', 
+            displayName: 'Food', 
+            size: 'medium',
+            supply: 1000,
+            maxSupply: 1000,
+            handlePositions: {
+                source: Position.Right
+            }
+        },
+        position: { x: -100, y: 400 },
     },
 ];
 

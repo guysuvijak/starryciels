@@ -15,7 +15,7 @@ const OwnPlanet = () => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -20 }}
-    className="bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl"
+    className="bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto"
   >
     <h2 className="text-2xl font-bold mb-4">Your NFT Planets</h2>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -36,7 +36,7 @@ const OtherPlanet = () => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -20 }}
-    className="bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl"
+    className="bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto"
   >
     <h2 className="text-2xl font-bold mb-4">Other Players' Planets</h2>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -58,15 +58,15 @@ const BuyPlanet = () => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -20 }}
-    className="bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl"
+    className="bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto"
   >
     <h2 className="text-2xl font-bold mb-4">Buy New Planet</h2>
     <div className="flex flex-col items-center bg-indigo-700 rounded-lg p-6">
-      <div className="w-48 h-48 bg-indigo-500 rounded-full mb-6 flex items-center justify-center text-7xl">
+      <div className="w-32 h-32 bg-indigo-500 rounded-full mb-4 flex items-center justify-center text-7xl">
         🌎
       </div>
-      <p className="text-2xl font-semibold mb-4">Exclusive New Planet</p>
-      <p className="text-xl mb-6">Price: 1000 ETH</p>
+      <p className="text-2xl font-semibold mb-2">Exclusive New Planet</p>
+      <p className="text-xl mb-4">Price: 1000 ETH</p>
       <button className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300">
         Buy Now
       </button>
@@ -79,7 +79,7 @@ const Marketplace = () => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -20 }}
-    className="bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl"
+    className="bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto"
   >
     <h2 className="text-2xl font-bold mb-4">NFT Marketplace</h2>
     <div className="overflow-x-auto">
@@ -122,6 +122,7 @@ const MotherScreen = () => {
   const { setGameMenu } = useGameStore();
 
   return (
+  <div className='flex w-full min-h-screen absolute z-100'>
     <div className="flex flex-col items-center justify-start w-full min-h-screen bg-gradient-to-b from-indigo-900 to-black text-white p-4 overflow-x-hidden relative">
       <motion.button
         initial={{ opacity: 0, x: -20 }}
@@ -168,6 +169,7 @@ const MotherScreen = () => {
         {menuState === 'market' && <Marketplace key="market" />}
       </AnimatePresence>
     </div>
+  </div>
   );
 };
 
