@@ -26,7 +26,7 @@ export const CreateProfile = async (owner: string, nickname: string) => {
         'name': metadataName,
         'symbol': 'STCTPF',
         'description': 'StarryCiels Player Profile',
-        'image': 'https://starryciels.vercel.app/assets/metaplex/profile.png',
+        'image': 'https://gateway.pinata.cloud/ipfs/QmauoA8uruGH4xkde8uLMDQCuzi4QLQ8q4pYmJj1MFZL6N',
         'external_url': 'https://starryciels.vercel.app',
         'attributes': attributes
     };
@@ -41,6 +41,11 @@ export const CreateProfile = async (owner: string, nickname: string) => {
         owner: publicKey(owner),
         collection: collection,
         plugins: [
+            {
+                type: 'FreezeDelegate',
+                authority: { type: 'Address', address: addressProfileCollection },
+                frozen: true
+            },
             {
                 type: 'TransferDelegate',
                 authority: { type: 'Address', address: addressProfileCollection },

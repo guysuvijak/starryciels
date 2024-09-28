@@ -67,7 +67,7 @@ const nodeImages = {
     FuelImport: '/assets/images/fuel-station.webp',
     FoodExport: '/assets/images/node-food.webp',
     FoodImport: '/assets/images/food-station.webp',
-    ConnectorConnector: '/assets/images/connector.gif',
+    ConnectorConnector: '/assets/images/node-connector.webp',
     SpaceshipSpaceship: '/assets/images/spaceship.webp'
 };
 
@@ -1121,9 +1121,7 @@ const GameplayScreen = () => {
                 <div
                     className='relative min-h-screen overflow-x-hidden bg-black text-white z-10 hide-scrollbar'
                 >
-                    <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg1.png)', backgroundSize: 'cover', zIndex: 1 }} />
-                    <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg2.png)', backgroundSize: 'cover', zIndex: 2 }} />
-                    <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundImage: 'url(/assets/website/bg3.png)', backgroundSize: 'cover', zIndex: 3 }} />
+                    <motion.div className='fixed top-0 left-0 w-full h-full bg-slate-500' style={{ backgroundImage: 'url(/assets/website/bg-dust1.webp)', backgroundSize: 'repeat', zIndex: 1 }} />
                     <div className='absolute z-50 top-0 bottom-0 left-0 right-0'>
                         <ReactFlow
                             defaultViewport={{ x: 0, y: 0, zoom: 1 }}

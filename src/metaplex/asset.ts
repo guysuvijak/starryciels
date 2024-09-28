@@ -3,7 +3,7 @@ import { fetchAssetsByCollection, fetchCollection, create, fetchAsset, ruleSet, 
 import { umi, txConfig } from '@/utils/umi';
 
 const creator1 = publicKey('HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH');
-const collectionAddress = publicKey('49CHNbDr3dnb64zDS3qiQiSvm3UWWtRetjTt39FDsA4k');
+const collectionAddress = publicKey('ErGZWwW56TTtKZgdx38cjSSgct5YiXwSnesnhUUrUpm');
 
 export const CreateAsset = async () => {
     const assetSigner = generateSigner(umi);

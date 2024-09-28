@@ -68,7 +68,7 @@ const ProfileScreen = () => {
     };
 
     const updatePro = async () => {
-        const response = await UpdateProfile(String(wallet.publicKey), "4cBzuK72e5dGojac229F24qjyDsAdt4kmCPryKu48mBT");
+        const response = await UpdateProfile(String(wallet.publicKey), '4cBzuK72e5dGojac229F24qjyDsAdt4kmCPryKu48mBT');
         console.log(response)
     };
 

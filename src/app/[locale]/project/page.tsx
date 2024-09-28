@@ -1,27 +1,27 @@
 'use client'
 import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { umi } from '@/utils/umi';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { publicKey } from '@metaplex-foundation/umi';
 import { fetchCollection } from '@metaplex-foundation/mpl-core';
 
-import { CreateCollection, FetchCollection, CreateProfileCollection } from '@/metaplex/collection';
+import { CreatePlanetCollection, FetchCollection, CreateProfileCollection } from '@/metaplex/collection';
 import { CreateAsset, FetchAsset, FetchAssetByCollection, TransferAsset } from '@/metaplex/asset';
 import Web3Connect from '@/components/(global)/Web3Connect';
 
 const Project = () => {
     const wallet = useWallet();
-    const [decodedData, setDecodedData] = useState<any>(null);
+    const [ decodedData, setDecodedData ] = useState<any>(null);
 
     const projectFetch = async () => {
-        const collectionAddress = publicKey('49CHNbDr3dnb64zDS3qiQiSvm3UWWtRetjTt39FDsA4k');
+        const collectionAddress = publicKey('ErGZWwW56TTtKZgdx38cjSSgct5YiXwSnesnhUUrUpm');
         const collection = await fetchCollection(umi, collectionAddress);
         console.log(collection)
     };
 
     const handleClick = async () => {
-        const result = await CreateCollection();
+        const result = await CreatePlanetCollection();
         console.log('Collection Address:', result.collectionAddress.toString());
     };
 

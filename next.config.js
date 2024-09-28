@@ -85,10 +85,10 @@ const nextConfig = {
                 has: [
                     {
                         type: 'host',
-                        value: 'localhost:3000',
+                        value: 'starryciels.vercel.app',
                     },
                 ],
-                destination: 'http://localhost:3000:path*',
+                destination: 'http://starryciels.vercel.app:path*',
                 permanent: true,
             },
         ];
