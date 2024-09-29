@@ -6,7 +6,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { publicKey } from '@metaplex-foundation/umi';
 import { fetchCollection } from '@metaplex-foundation/mpl-core';
 
-import { CreatePlanetCollection, FetchCollection, CreateProfileCollection } from '@/metaplex/collection';
+import { CreatePlanetCollection, CreateProfileCollection } from '@/metaplex/collection';
 import { CreateAsset, FetchAsset, FetchAssetByCollection, TransferAsset } from '@/metaplex/asset';
 import Web3Connect from '@/components/(global)/Web3Connect';
 

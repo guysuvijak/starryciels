@@ -36,7 +36,11 @@ export const useGameStore = create<GameState>()(
             gameMenu: 'profile',
             setGameMenu: (gameMenu) => set({ gameMenu }),
             profilePublic: null,
-            setProfilePublic: (profilePublic) => set({ profilePublic })
+            setProfilePublic: (profilePublic) => set({ profilePublic }),
+            landingPublic: '',
+            setLandingPublic: (landingPublic) => set({ landingPublic }),
+            landingColor: '',
+            setLandingColor: (landingColor) => set({ landingColor }),
         }),
         {
             name: 'game-storage',

@@ -5,11 +5,10 @@ import Image from 'next/image';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useTranslations } from 'next-intl';
 import { FaCheck, FaTimes } from 'react-icons/fa';
-import { LuLoader2 } from 'react-icons/lu';
-import { motion } from 'framer-motion';
 import { useGameStore } from '@/stores/useStore';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
+import SpinningLoader from '@/components/(element)/SpinningLoader';
 import { CheckProfile, CreateProfile, UpdateProfile } from '@/metaplex/profile';
 import { decodeAndParseJSON } from '@/utils/decode';
 
@@ -98,21 +97,6 @@ const ProfileScreen = () => {
         )
     };
 
-    const SpinningLoader = () => {
-        return (
-            <motion.div
-                animate={{ rotate: 360 }}
-                transition={{
-                duration: 1,
-                repeat: Infinity,
-                ease: 'linear'
-                }}
-            >
-                <LuLoader2 size={20} className='text-white' />
-            </motion.div>
-        );
-    };
-
     const CreateProfileComponent = () => {
         const inputRef = useRef<HTMLInputElement>(null);
 
@@ -186,16 +170,19 @@ const ProfileScreen = () => {
     return (
         <div className='flex flex-col items-center w-full h-full bg-slate-200 absolute z-100 p-4'>
             <Image 
-                src='/assets/metaplex/profile.png' 
+                src='/assets/images/profile.webp'
                 width={200}
                 height={200}
-                alt='profile' 
+                alt='profile'
                 className='w-[150px] h-[150px] rounded-full bg-[#000000] mb-2' 
                 draggable={false} 
                 priority 
             />
             {isLoading ? (
-                <div>Loading ...</div>
+                <div className='flex items-center'>
+                    <SpinningLoader />
+                    <p className='ml-1'>Loading ...</p>
+                </div>
             ) : (
                 <>
                     <h1 className='text-[22px] font-medium'>{(walletConnect && isProfile) ? t('header-success') : walletConnect ? t('header-create') : t('header-connect')}</h1>

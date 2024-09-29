@@ -88,7 +88,7 @@ const nextConfig = {
                         value: 'starryciels.vercel.app',
                     },
                 ],
-                destination: 'http://starryciels.vercel.app:path*',
+                destination: 'http://starryciels.vercel.app/:path*',
                 permanent: true,
             },
         ];

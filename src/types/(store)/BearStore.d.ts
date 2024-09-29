@@ -19,4 +19,8 @@ export interface GameState {
     setGameMenu: (gameMenu: GameMenu) => void;
     profilePublic: string | null;
     setProfilePublic: (profilePublic: string | null) => void;
+    landingPublic: string;
+    setLandingPublic: (landingPublic) => void;
+    landingColor: string;
+    setLandingColor: (landingColor) => void;
 };

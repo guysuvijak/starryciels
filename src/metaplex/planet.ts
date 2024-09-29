@@ -1,5 +1,5 @@
 import { publicKey, generateSigner, createSignerFromKeypair, signerIdentity, transactionBuilder, sol } from '@metaplex-foundation/umi';
-import { fetchCollection, create, fetchAssetsByOwner, update, fetchAsset } from '@metaplex-foundation/mpl-core';
+import { fetchCollection, create, fetchAssetsByOwner, update, fetchAsset, fetchAssetsByCollection } from '@metaplex-foundation/mpl-core';
 import { transferSol } from '@metaplex-foundation/mpl-toolbox';
 import { umi, txConfig } from '@/utils/umi';
 
@@ -114,7 +114,7 @@ export const CreatePlanet = async (owner: string) => {
         }));
 
     try {
-        const response = await tx.sendAndConfirm(umi);
+        const response = await tx.sendAndConfirm(umi, txConfig);
         return { response, assetAddress: assetSigner.publicKey };
     } catch (error) {
         console.error('Failed to create planet:', error);
@@ -124,7 +124,7 @@ export const CreatePlanet = async (owner: string) => {
 
 export const CheckPlanet = async (owner: string) => {
     const assetsByOwner = await fetchAssetsByOwner(umi, owner, {
-        skipDerivePlugins: false,
+        skipDerivePlugins: false
     })
     const collectionAssets = assetsByOwner.filter((asset: any) => 
         asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressPlanetCollection.toString()
@@ -134,12 +134,19 @@ export const CheckPlanet = async (owner: string) => {
 
 export const FetchOwnPlanet = async (owner: string) => {
     const assetsByOwner = await fetchAssetsByOwner(umi, owner, {
-        skipDerivePlugins: false,
+        skipDerivePlugins: false
     })
     const collectionAssets = assetsByOwner.filter((asset: any) => 
         asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressPlanetCollection.toString()
     );
     return collectionAssets;
+};
+
+export const FetchOtherPlanet = async () => {
+    const assetsByCollection = await fetchAssetsByCollection(umi, addressPlanetCollection, {
+        skipDerivePlugins: false
+    });
+    return assetsByCollection;
 };
 
 export const UpdatePlanet = async (owner: string, assetId: any) => {

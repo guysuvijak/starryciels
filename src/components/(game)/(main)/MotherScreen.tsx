@@ -4,41 +4,56 @@ import { useGameStore } from '@/stores/useStore';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { FaExternalLinkAlt, FaInfoCircle } from 'react-icons/fa';
+import { SiSolana } from 'react-icons/si';
+import { RiSpaceShipFill } from 'react-icons/ri';
 import { Tooltip } from 'react-tooltip';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
-import { CreatePlanet, FetchOwnPlanet } from '@/metaplex/planet';
+import SpinningLoader from '@/components/(element)/SpinningLoader';
+import { CreatePlanet, FetchOwnPlanet, FetchOtherPlanet } from '@/metaplex/planet';
 
 const DynamicPlanetGenerate = dynamic(() => import('./PlanetGenerate'), { ssr: false });
 
 const menuItems = [
-    { id: 'own', title: 'Own Planet', icon: '🌍', state: 'own' },
-    { id: 'other', title: 'Other Planet', icon: '🪐', state: 'other' },
-    { id: 'buy', title: 'Buy Planet', icon: '🛒', state: 'buy' },
-    { id: 'market', title: 'Marketplace', icon: '🏪', state: 'market' },
+    { id: 'own', title: 'Own Planet', icon: '🌍', enable: true },
+    { id: 'other', title: 'Other Planet', icon: '🪐', enable: true },
+    { id: 'buy', title: 'Buy Planet', icon: '🛒', enable: true },
+    { id: 'market', title: 'Marketplace', icon: '🏪', enable: false },
 ];
 
-const OwnPlanetComponent = ({data}: {data: any}) => {
-    const getPlanetAttribute = (planet: any, key: string) => {
-        return planet.attributes.attributeList.find((attr: any) => attr.key === key)?.value || 'N/A';
-    };
+const getPlanetAttribute = (planet: any, key: string) => {
+    return planet.attributes.attributeList.find((attr: any) => attr.key === key)?.value || 'N/A';
+};
 
-    const handleSolscanClick = (publickey: string) => {
-        window.open(`https://core.metaplex.com/explorer/${publickey}?env=devnet`, '_blank');
-    };
+const handleSolscanClick = (publickey: string) => {
+    window.open(`https://core.metaplex.com/explorer/${publickey}?env=devnet`, '_blank');
+};
 
-    const tooltipContent = (planet: any) => (
+const tooltipContent = (planet: any) => {
+    const color = getPlanetAttribute(planet, 'color');
+    const colorBoxStyle = { backgroundColor: `#${color}` };
+    return (
         <div>
             <p className='font-medium'>[ Attributes ]</p>
-            <p>- Color: {getPlanetAttribute(planet, 'color')}</p>
+            <p>- Color:<span style={colorBoxStyle} className={'inline-block w-[14px] h-[14px] mx-1'} />#{color}</p>
             <p>- Size: {getPlanetAttribute(planet, 'size')}</p>
             <p>- Surface: {getPlanetAttribute(planet, 'surface')}</p>
             <p>- Cloud: {getPlanetAttribute(planet, 'cloud')}</p>
             <p>- Rings: {getPlanetAttribute(planet, 'rings')}</p>
         </div>
-    );
-    
+    )
+};
+
+const OwnPlanetComponent = ({data}: {data: any}) => {
+    const { setGameMenu, setLandingPublic, setLandingColor } = useGameStore();
+
+    const handleOnClick = async (publicKey: string, color: string) => {
+        setLandingPublic(publicKey);
+        setLandingColor(color);
+        setGameMenu('game');
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -46,7 +61,7 @@ const OwnPlanetComponent = ({data}: {data: any}) => {
             exit={{ opacity: 0, y: -20 }}
             className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto'
         >
-            <h2 className='text-2xl font-bold mb-4'>Your NFT Planets</h2>
+            <h2 className='text-2xl font-bold mb-4'>Your NFT Planets ({data.length})</h2>
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
             {data.map((planet: any) => (
                 <div key={planet.publicKey} className='bg-indigo-700 rounded-lg p-4 flex flex-col items-center relative'>
@@ -54,7 +69,7 @@ const OwnPlanetComponent = ({data}: {data: any}) => {
                         data-tooltip-id={'tooltip-view'}
                         data-tooltip-content={'View on Metaplex'}
                         onClick={() => handleSolscanClick(planet.publicKey)}
-                        className='p-1 bg-indigo-600 rounded-md absolute top-1 right-1'
+                        className='p-1 bg-indigo-600 rounded-md absolute top-2 right-2'
                     >
                         <FaExternalLinkAlt size={18} />
                     </button>
@@ -73,6 +88,15 @@ const OwnPlanetComponent = ({data}: {data: any}) => {
                         <Tooltip id={`tooltip-${planet.publicKey}`} render={() => tooltipContent(planet)} />
                     </div>
                     <p className='text-sm text-indigo-300'>Code: {getPlanetAttribute(planet, 'code')}</p>
+                    <div className='mt-2'>
+                        <button
+                            onClick={() => handleOnClick(planet.publicKey, getPlanetAttribute(planet, 'color'))}
+                            className='flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-4 rounded-lg transition duration-300'
+                        >
+                            <RiSpaceShipFill size={18} />
+                            <p className='ml-1'>Landing</p>
+                        </button>
+                    </div>
                 </div>
             ))}
             </div>
@@ -80,111 +104,118 @@ const OwnPlanetComponent = ({data}: {data: any}) => {
     )
 };
 
-const OtherPlanetComponent = () => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto'
-    >
-        <h2 className='text-2xl font-bold mb-4'>Other Players' Planets</h2>
-        <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
-        {[1, 2, 3, 4, 5, 6].map((planet) => (
-            <div key={planet} className='bg-indigo-700 rounded-lg p-4 flex flex-col items-center'>
-            <div className='w-32 h-32 bg-indigo-500 rounded-full mb-4 flex items-center justify-center text-5xl'>
-                🪐
-            </div>
-            <p className='text-lg font-semibold mb-2'>Planet #{planet}</p>
-            <p className='text-sm text-indigo-300'>Owned by Player{planet}</p>
-            </div>
-        ))}
-        </div>
-    </motion.div>
-);
-
-const BuyPlanetComponent = ({onClick}: {onClick: () => void}) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto'
-    >
-        <h2 className='text-2xl font-bold mb-4'>Buy New Planet</h2>
-        <div className='flex flex-col items-center bg-indigo-700 rounded-lg p-6'>
-        <div className='w-32 h-32 bg-indigo-500 rounded-full mb-4 flex items-center justify-center text-7xl'>
-            🌎
-        </div>
-        <p className='text-2xl font-semibold mb-2'>Exclusive New Planet</p>
-        <p className='text-xl mb-4'>Price: 1000 ETH</p>
-        <button onClick={onClick} className='bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300'>
-            Buy Now
-        </button>
-        </div>
-    </motion.div>
-);
-
-const MarketplaceComponent = () => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto'
-    >
-        <h2 className='text-2xl font-bold mb-4'>NFT Marketplace</h2>
-        <div className='overflow-x-auto'>
-        <table className='min-w-full bg-indigo-700 rounded-lg'>
-            <thead>
-            <tr>
-                <th className='px-4 py-2'>Image</th>
-                <th className='px-4 py-2'>Planet</th>
-                <th className='px-4 py-2'>Owner</th>
-                <th className='px-4 py-2'>Price</th>
-                <th className='px-4 py-2'>Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {[1, 2, 3].map((item) => (
-                <tr key={item} className='border-t border-indigo-600'>
-                <td className='px-4 py-2'>
-                    <div className='w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-2xl'>
-                    🪐
-                    </div>
-                </td>
-                <td className='px-4 py-2'>Planet #{item}</td>
-                <td className='px-4 py-2'>Owner{item}</td>
-                <td className='px-4 py-2'>{item * 100} ETH</td>
-                <td className='px-4 py-2'>
-                    <button className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded transition duration-300'>
-                    Buy
+const OtherPlanetComponent = ({data, wallet}: {data: any, wallet: string}) => {
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto'
+        >
+            <h2 className='text-2xl font-bold mb-4'>Other Players Planets ({data.length})</h2>
+            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
+            {data.map((planet: any) => (
+                <div key={planet.publicKey} className='bg-indigo-700 rounded-lg p-4 flex flex-col items-center relative'>
+                    <button
+                        data-tooltip-id={'tooltip-view'}
+                        data-tooltip-content={'View on Metaplex'}
+                        onClick={() => handleSolscanClick(planet.publicKey)}
+                        className='p-1 bg-indigo-600 rounded-md absolute top-2 right-2'
+                    >
+                        <FaExternalLinkAlt size={18} />
                     </button>
-                </td>
-                </tr>
+                    <Tooltip id={'tooltip-view'} />
+                    <div className='z-10 w-32 h-32'>
+                        <DynamicPlanetGenerate color={getPlanetAttribute(planet, 'color')} rings={getPlanetAttribute(planet, 'rings')} cloud={getPlanetAttribute(planet, 'cloud')} surface={getPlanetAttribute(planet, 'surface')} />
+                    </div>
+                    <div className='flex justify-center items-center'>
+                        <p className='text-lg font-semibold'>{getPlanetAttribute(planet, 'planet')}</p>
+                        <button
+                            data-tooltip-id={`tooltip-${planet.publicKey}`}
+                            className='ml-1 p-1 bg-indigo-600 rounded-full'
+                        >
+                        <FaInfoCircle size={16} />
+                        </button>
+                        <Tooltip id={`tooltip-${planet.publicKey}`} render={() => tooltipContent(planet)} />
+                    </div>
+                    <p className='text-sm text-indigo-300'>Code: {getPlanetAttribute(planet, 'code')}</p>
+                    <div className='flex items-center text-sm'>
+                        <p className='text-indigo-300'>Owner: {(planet.owner).slice(0,5)}...{(planet.owner).slice(-5)}</p>
+                        {planet.owner === wallet &&
+                            <span className='rounded-full bg-purple-100 ml-1 px-2 py-0.5 text-purple-700'>
+                                You
+                            </span>
+                        }
+                    </div>
+                </div>
             ))}
-            </tbody>
-        </table>
-        </div>
-    </motion.div>
-);
+            </div>
+        </motion.div>
+    )
+};
+
+const BuyPlanetComponent = ({wallet}: {wallet: string;}) => {
+    const [ isBuying, setIsBuying ] = useState(false);
+    const [ newPlanet, setNewPlanet ] = useState('');
+
+    const handleBuyPlanet = async () => {
+        setIsBuying(true);
+        const response = await CreatePlanet(wallet);
+        setNewPlanet(response.assetAddress);
+        setIsBuying(false);
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto'
+        >
+            <h2 className='text-2xl font-bold mb-4'>Buy New Planet</h2>
+            <div className='flex flex-col items-center bg-indigo-700 rounded-lg p-4'>
+                <Image src='/assets/images/planet.webp' alt='planet' width={800} height={800} className='flex w-32 h-32' />
+                <p className='text-2xl font-semibold mb-2'>New Planet</p>
+                {isBuying ? (
+                    <div className='flex items-center bg-gray-500 py-3 px-6 rounded-lg'>
+                        <SpinningLoader />
+                    </div>
+                ) : (
+                    <button onClick={() => handleBuyPlanet()} className='flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300'>
+                        <p className='pr-1'>1</p>
+                        <SiSolana size={20} />
+                    </button>
+                )}
+                {newPlanet && <p className='text-white'>Success Mint: {newPlanet}</p>}
+            </div>
+        </motion.div>
+    )
+};
 
 const MotherScreen = () => {
     const wallet = useWallet();
     const { setGameMenu } = useGameStore();
     const [ menuState, setMenuState ] = useState(null);
     const [ ownPlanetData, setOwnPlanetData ] = useState<any>([]);
+    const [ otherPlanetData, setOtherPlanetData ] = useState<any>([]);
 
     useEffect(() => {
         getDataInitial();
     }, []);
 
-    const getDataInitial = async () => {
-        const ownPlanet = await FetchOwnPlanet(String(wallet.publicKey));
-        console.log('ownPlanet', ownPlanet)
-        setOwnPlanetData(ownPlanet);
+    const sortedPlanet = (data: any) => {
+        return data.sort((a: any, b: any) => {
+            const nameA = a.name.toLowerCase();
+            const nameB = b.name.toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
     };
 
-    const handleBuyPlanet = async () => {
-        const response = await CreatePlanet(String(wallet.publicKey));
-        console.log('response',response);
+    const getDataInitial = async () => {
+        const ownPlanet = await FetchOwnPlanet(String(wallet.publicKey));
+        setOwnPlanetData(sortedPlanet(ownPlanet));
+        const otherPlanet = await FetchOtherPlanet();
+        setOtherPlanetData(sortedPlanet(otherPlanet));
     };
 
     return (
@@ -209,30 +240,43 @@ const MotherScreen = () => {
             </motion.h1>
             <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 w-full max-w-4xl'>
                 {menuItems.map((item) => (
-                <motion.div
-                    key={item.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className={`bg-indigo-800 rounded-lg shadow-lg overflow-hidden cursor-pointer ${
-                    menuState === item.state ? 'ring-4 ring-blue-400' : ''
-                    }`}
-                    onClick={() => setMenuState(item.state as any)}
-                >
-                    <div className='p-4 flex flex-col items-center'>
-                    <span className='text-4xl mb-2'>{item.icon}</span>
-                    <h2 className='text-sm font-semibold text-center'>{item.title}</h2>
-                    </div>
-                </motion.div>
+                    <>
+                        {item.enable ? (
+                            <motion.button
+                                key={item.id}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className={`bg-indigo-800 rounded-lg shadow-lg overflow-hidden cursor-pointer ${
+                                    menuState === item.id ? 'ring-4 ring-blue-400' : ''
+                                }`}
+                                onClick={() => setMenuState(item.id as any)}
+                            >
+                                <div className='p-4 flex flex-col items-center'>
+                                    <span className='text-4xl mb-2'>{item.icon}</span>
+                                    <h2 className='text-sm font-semibold text-center'>{item.title}</h2>
+                                </div>
+                            </motion.button>
+                        ) : (
+                            <div
+                                key={item.id}
+                                className={'flex justify-center items-center bg-gray-800 rounded-lg shadow-lg overflow-hidden'}
+                            >
+                                <div className='p-4 flex flex-col items-center text-gray-500'>
+                                    <h2 className='text-sm font-semibold text-center'>{item.title}</h2>
+                                    <h2 className='text-sm font-semibold text-center'>Coming Soon...</h2>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 ))}
             </div>
             <AnimatePresence mode='wait'>
                 {menuState === 'own' && <OwnPlanetComponent key='own' data={ownPlanetData} />}
-                {menuState === 'other' && <OtherPlanetComponent key='other' />}
-                {menuState === 'buy' && <BuyPlanetComponent key='buy' onClick={handleBuyPlanet} />}
-                {menuState === 'market' && <MarketplaceComponent key='market' />}
+                {menuState === 'other' && <OtherPlanetComponent key='other' data={otherPlanetData} wallet={String(wallet.publicKey)} />}
+                {menuState === 'buy' && <BuyPlanetComponent key='buy' wallet={String(wallet.publicKey)} />}
             </AnimatePresence>
         </div>
     </div>
