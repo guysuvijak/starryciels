@@ -11,7 +11,7 @@ const cspHeader = `
     object-src 'self';
     base-uri 'self';
     form-action 'self';
-    frame-src 'self' https://discord.com https://youtube.com https://www.youtube.com https://widget.solflare.com;
+    frame-src 'self' https://discord.com https://youtube.com https://www.youtube.com https://widget.solflare.com https://connect.solflare.com;
     frame-ancestors 'self' https://localhost:* http://localhost:* https://*.localhost:* http://*.localhost:* https://discord.com https://youtube.com;
     connect-src 'self' https: http: wss: https://www.youtube.com;
     upgrade-insecure-requests;

@@ -274,9 +274,8 @@ interface CustomNodeProps {
 const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, connectedEdgesCount, efficiency }) => {
     const node = useNodeStore(state => state.nodes[id]);
     const updateNode = useNodeStore(state => state.updateNode);
-    const [isHovered, setIsHovered] = useState(false);
-    const [resourceChange, setResourceChange] = useState(0);
-    console.log('node',node)
+    const [ isHovered, setIsHovered ] = useState(false);
+    const [ resourceChange, setResourceChange ] = useState(0);
 
     const nodeData = node?.isTemporary ? node : useNodeStore(state => state.nodes[id]);
 
@@ -1058,21 +1057,24 @@ const GameplayScreen = () => {
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
         
+        const nodeCategory = nodeType.includes('Import') ? 'Import' : nodeType === 'Connector' ? 'Connector' : 'Export';
+        const resourceType = nodeType.replace('Import', '').replace('Export', '').replace('Connector', '');
+        
         const newNode: Node<NodeData> = {
             id: newNodeId,
             type: 'custom',
             data: { 
                 label: `${nodeType}`, 
-                type: nodeType.replace('Import', '').replace('Connector', 'Connector'),
-                nodeType: nodeType === 'Connector' ? 'Connector' : 'Import',
+                type: resourceType as ResourceType,
+                nodeType: nodeCategory as NodeType,
                 id: newNodeId,
-                displayName: nodeDisplayNames[nodeType],
+                displayName: nodeDisplayNames[nodeType] || nodeType,
                 size: 'small',
                 supply: 0,
                 maxSupply: 1000,
                 handlePositions: {
                     target: Position.Left,
-                    ...(nodeType === 'Connector' ? { source: Position.Right } : {})
+                    ...(nodeCategory === 'Connector' ? { source: Position.Right } : {})
                 },
                 connectedNodes: [],
                 isTemporary: true
