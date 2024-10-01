@@ -7,8 +7,8 @@ const myKeypair = umi.eddsa.createKeypairFromSecretKey(secret);
 const collectionSigner = createSignerFromKeypair(umi, myKeypair);
 umi.use(signerIdentity(collectionSigner));
 
-const addressProfileCollection = publicKey('7N1e73MEwJ1saYauQWWNZ81n3xuzXr126KrPiHGAQjad');
-const addressUpdated = publicKey('FUfQsR8QnCEUd1ZbzvCSCkNbnS1aCHKpPGeAYptKrtsZ');
+const addressProfileCollection = publicKey(process.env.ADDRESS_COLLECTION_PROFILE as string);
+const addressUpdated = publicKey(process.env.ADDRESS_SIGNER as string);
 
 export const CreateProfile = async (owner: string, nickname: string) => {
     const assetSigner = generateSigner(umi);

@@ -80,17 +80,17 @@ const nextConfig = {
                 destination: '/en',
                 permanent: true,
             },
-            {
-                source: '/:path*',
-                has: [
-                    {
-                        type: 'host',
-                        value: 'starryciels.vercel.app',
-                    },
-                ],
-                destination: 'http://starryciels.vercel.app/:path*',
-                permanent: true,
-            },
+            //{
+            //    source: '/:path*',
+            //    has: [
+            //        {
+            //            type: 'host',
+            //            value: 'starryciels.vercel.app',
+            //        },
+            //    ],
+            //    destination: 'http://starryciels.vercel.app/:path*',
+            //    permanent: true,
+            //},
         ];
     },
     images: {
@@ -103,7 +103,10 @@ const nextConfig = {
     env: {
         DATABASE_URL: process.env.DATABASE_URL,
         NETWORK_RPC: process.env.NETWORK_RPC,
-        RPC_URL: process.env.RPC_URL
+        RPC_URL: process.env.RPC_URL,
+        ADDRESS_COLLECTION_PLANET: process.env.ADDRESS_COLLECTION_PLANET,
+        ADDRESS_COLLECTION_PROFILE: process.env.ADDRESS_COLLECTION_PROFILE,
+        ADDRESS_SIGNER: process.env.ADDRESS_SIGNER
     }
 };
 

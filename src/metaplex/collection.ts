@@ -9,7 +9,7 @@ umi.use(signerIdentity(collectionSigner));
 
 const creator1 = publicKey('HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH');
 const collectionName = 'StarryCiels Planet';
-const collectionAddress = publicKey('ErGZWwW56TTtKZgdx38cjSSgct5YiXwSnesnhUUrUpm');
+const collectionAddress = publicKey(process.env.ADDRESS_COLLECTION_PLANET as string);
 
 export const CreatePlanetCollection = async () => {
     console.log('process...')

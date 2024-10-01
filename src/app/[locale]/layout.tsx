@@ -46,6 +46,7 @@ export async function generateMetadata({ params: { locale } }: LocaleLayoutProps
     const currentUrl = `${domain}${pathname}`;
   
     return {
+        metadataBase: new URL(domain),
         manifest: '/metadata/manifest.json',
         title: title,
         description: description,

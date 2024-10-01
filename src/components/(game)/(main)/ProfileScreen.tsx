@@ -78,8 +78,8 @@ const ProfileScreen = () => {
             try {
                 const response = await CreateProfile(String(wallet.publicKey), nickName);
                 if(response) {
-                    setIsCreateLoading(false);
                     checkProfile();
+                    setIsCreateLoading(false);
                 }
             } catch (err: unknown) {
                 setError(String(err));
@@ -154,7 +154,7 @@ const ProfileScreen = () => {
                 <button 
                     type='submit'
                     className={`text-white px-4 py-2 mt-2 rounded bg-blue-500 hover:bg-blue-600`}
-                    onClick={() => setGameMenu('game')}
+                    onClick={() => setGameMenu('mother')}
                 >
                     {t('login-button')}
                 </button>

@@ -15,12 +15,12 @@ const Project = () => {
     const [ decodedData, setDecodedData ] = useState<any>(null);
 
     const projectFetch = async () => {
-        const collectionAddress = publicKey('ErGZWwW56TTtKZgdx38cjSSgct5YiXwSnesnhUUrUpm');
+        const collectionAddress = publicKey(process.env.ADDRESS_COLLECTION_PLANET as string);
         const collection = await fetchCollection(umi, collectionAddress);
         console.log(collection)
     };
 
-    const handleClick = async () => {
+    const onCreatePlanetCollection = async () => {
         const result = await CreatePlanetCollection();
         console.log('Collection Address:', result.collectionAddress.toString());
     };
@@ -58,7 +58,7 @@ const Project = () => {
         <div className='flex flex-col bg-red-400 p-4'>
             <Web3Connect />
             <div>
-                <button className='px-4 mx-2 bg-slate-500' onClick={() => handleClick()}>Create New Assets</button>
+                <button className='px-4 mx-2 bg-slate-500' onClick={() => onCreatePlanetCollection()}>Create Planet Collection</button>
                 <button className='px-4 mx-2 bg-slate-500' onClick={() => projectFetch()}>Fetch Collection</button>
                 <button className='px-4 mx-2 bg-slate-500' onClick={() => CreateCreateCollection()}>Create Profile Collection</button>
             </div>

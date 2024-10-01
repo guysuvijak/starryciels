@@ -45,7 +45,7 @@ const tooltipContent = (planet: any) => {
     )
 };
 
-const OwnPlanetComponent = ({data}: {data: any}) => {
+const OwnPlanetComponent = ({data, isLoading, onBuyClick}: {data: any, isLoading: boolean, onBuyClick: () => void}) => {
     const { setGameMenu, setLandingPublic, setLandingColor } = useGameStore();
 
     const handleOnClick = async (publicKey: string, color: string) => {
@@ -53,6 +53,36 @@ const OwnPlanetComponent = ({data}: {data: any}) => {
         setLandingColor(color);
         setGameMenu('game');
     };
+
+    if (isLoading) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl flex justify-center items-center'
+            >
+                <SpinningLoader />
+            </motion.div>
+        );
+    }
+
+    if (data.length === 0) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl flex flex-col justify-center items-center'
+            >
+                <p className='text-xl font-semibold'>No Planets Found</p>
+                <p className='text-xl font-semibold my-2'>Get first new planet</p>
+                <button onClick={onBuyClick} className='flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300'>
+                    HERE
+                </button>
+            </motion.div>
+        );
+    }
 
     return (
         <motion.div
@@ -104,7 +134,33 @@ const OwnPlanetComponent = ({data}: {data: any}) => {
     )
 };
 
-const OtherPlanetComponent = ({data, wallet}: {data: any, wallet: string}) => {
+const OtherPlanetComponent = ({data, wallet, isLoading}: {data: any, wallet: string, isLoading: boolean}) => {
+    if (isLoading) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl flex justify-center items-center'
+            >
+                <SpinningLoader />
+            </motion.div>
+        );
+    }
+
+    if (data.length === 0) {
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl flex justify-center items-center'
+            >
+                <p className='text-xl font-semibold'>No Other Planets Found</p>
+            </motion.div>
+        );
+    }
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -154,15 +210,21 @@ const OtherPlanetComponent = ({data, wallet}: {data: any, wallet: string}) => {
     )
 };
 
-const BuyPlanetComponent = ({wallet}: {wallet: string;}) => {
+const BuyPlanetComponent = ({ wallet, onCheckClick, onBuySuccess }: { wallet: string; onCheckClick: () => void; onBuySuccess: () => void }) => {
     const [ isBuying, setIsBuying ] = useState(false);
     const [ newPlanet, setNewPlanet ] = useState('');
 
     const handleBuyPlanet = async () => {
         setIsBuying(true);
-        const response = await CreatePlanet(wallet);
-        setNewPlanet(response.assetAddress);
-        setIsBuying(false);
+        try {
+            const response = await CreatePlanet(wallet);
+            setNewPlanet(response.assetAddress);
+            onBuySuccess();
+        } catch (error) {
+            console.error("Error buying planet:", error);
+        } finally {
+            setIsBuying(false);
+        }
     };
 
     return (
@@ -186,7 +248,14 @@ const BuyPlanetComponent = ({wallet}: {wallet: string;}) => {
                         <SiSolana size={20} />
                     </button>
                 )}
-                {newPlanet && <p className='text-white'>Success Mint: {newPlanet}</p>}
+                {newPlanet &&
+                    <div className='flex flex-col justify-center items-center'>
+                        <p className='text-white mb-2'>Success Mint: {newPlanet}</p>
+                        <button onClick={onCheckClick} className='flex items-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg text-xl transition duration-300'>
+                            Check NFT
+                        </button>
+                    </div>
+                }
             </div>
         </motion.div>
     )
@@ -195,13 +264,15 @@ const BuyPlanetComponent = ({wallet}: {wallet: string;}) => {
 const MotherScreen = () => {
     const wallet = useWallet();
     const { setGameMenu } = useGameStore();
-    const [ menuState, setMenuState ] = useState(null);
+    const [ menuState, setMenuState ] = useState<string | null>(null);
     const [ ownPlanetData, setOwnPlanetData ] = useState<any>([]);
     const [ otherPlanetData, setOtherPlanetData ] = useState<any>([]);
+    const [ isLoading, setIsLoading ] = useState(true);
+    const [ refreshTrigger, setRefreshTrigger ] = useState(0);
 
     useEffect(() => {
         getDataInitial();
-    }, []);
+    }, [refreshTrigger]);
 
     const sortedPlanet = (data: any) => {
         return data.sort((a: any, b: any) => {
@@ -212,10 +283,21 @@ const MotherScreen = () => {
     };
 
     const getDataInitial = async () => {
-        const ownPlanet = await FetchOwnPlanet(String(wallet.publicKey));
-        setOwnPlanetData(sortedPlanet(ownPlanet));
-        const otherPlanet = await FetchOtherPlanet();
-        setOtherPlanetData(sortedPlanet(otherPlanet));
+        setIsLoading(true);
+        try {
+            const ownPlanet = await FetchOwnPlanet(String(wallet.publicKey));
+            setOwnPlanetData(sortedPlanet(ownPlanet));
+            const otherPlanet = await FetchOtherPlanet();
+            setOtherPlanetData(sortedPlanet(otherPlanet));
+        } catch (error) {
+            console.error("Error fetching planet data:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleBuySuccess = () => {
+        setRefreshTrigger(prev => prev + 1);
     };
 
     return (
@@ -252,7 +334,7 @@ const MotherScreen = () => {
                                 className={`bg-indigo-800 rounded-lg shadow-lg overflow-hidden cursor-pointer ${
                                     menuState === item.id ? 'ring-4 ring-blue-400' : ''
                                 }`}
-                                onClick={() => setMenuState(item.id as any)}
+                                onClick={() => setMenuState(item.id)}
                             >
                                 <div className='p-4 flex flex-col items-center'>
                                     <span className='text-4xl mb-2'>{item.icon}</span>
@@ -274,9 +356,9 @@ const MotherScreen = () => {
                 ))}
             </div>
             <AnimatePresence mode='wait'>
-                {menuState === 'own' && <OwnPlanetComponent key='own' data={ownPlanetData} />}
-                {menuState === 'other' && <OtherPlanetComponent key='other' data={otherPlanetData} wallet={String(wallet.publicKey)} />}
-                {menuState === 'buy' && <BuyPlanetComponent key='buy' wallet={String(wallet.publicKey)} />}
+                {menuState === 'own' && <OwnPlanetComponent key='own' data={ownPlanetData} isLoading={isLoading} onBuyClick={() => setMenuState('buy')} />}
+                {menuState === 'other' && <OtherPlanetComponent key='other' data={otherPlanetData} wallet={String(wallet.publicKey)} isLoading={isLoading} />}
+                {menuState === 'buy' && <BuyPlanetComponent key='buy' wallet={String(wallet.publicKey)} onCheckClick={() => setMenuState('own')} onBuySuccess={handleBuySuccess} />}
             </AnimatePresence>
         </div>
     </div>
