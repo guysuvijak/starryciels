@@ -8,7 +8,7 @@ import {
     EdgeProps, Node, Edge, useNodesState, useEdgesState, addEdge, BaseEdge,
     getSmoothStepPath, Handle, Position, useStore, useReactFlow
 } from '@xyflow/react';
-import { motion, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
 import { useGameStore } from '@/stores/useStore';
 import { useNodeStore } from './nodeStore';
@@ -706,9 +706,6 @@ const GameplayScreen = () => {
     const [ temporaryNode, setTemporaryNode ] = useState<Node<NodeData> | null>(null);
     const [ isNodeValid, setIsNodeValid ] = useState(true);
     const initializeNodes = useNodeStore((state: any) => state.initializeNodes);
-
-    const zoom: any = useStore((state) => state.transform[2]);
-    const backgroundScale = useTransform(zoom, [0.5, 2], [1.5, 0.75]);
 
     useEffect(() => {
         initializeNodes(initialNodes);
