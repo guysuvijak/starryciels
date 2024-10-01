@@ -3,10 +3,10 @@ import {
   Position
 } from '@xyflow/react';
 
-const resourceTypes = ['Ore', 'Fuel', 'Food', 'Connector'];
+const resourceTypes = ['Ore', 'Fuel', 'Food'];
 
 type ResourceType = typeof resourceTypes[number] | 'Spaceship';
-type NodeType = 'Export' | 'Import' | 'Connector' | 'Spaceship';
+type NodeType = 'Export' | 'Import' | 'Spaceship';
 
 interface NodeData {
     id: string;

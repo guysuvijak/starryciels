@@ -78,7 +78,7 @@ const OwnPlanetComponent = ({data, isLoading, onBuyClick}: {data: any, isLoading
                 <p className='text-xl font-semibold'>No Planets Found</p>
                 <p className='text-xl font-semibold my-2'>Get first new planet</p>
                 <button onClick={onBuyClick} className='flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300'>
-                    HERE
+                    Here
                 </button>
             </motion.div>
         );

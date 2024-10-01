@@ -27,7 +27,6 @@ const Panel: React.FC<PanelProps> = ({ onCreateTemporaryNode }) => {
                 <CustomCard imageSrc={'/assets/images/ore-station.webp'} title={'Ore Station'} cost={1000} Icon={'ore'} nodeType="OreImport" />
                 <CustomCard imageSrc={'/assets/images/fuel-station.webp'} title={'Fuel Station'} cost={1000} Icon={'fuel'} nodeType="FuelImport" />
                 <CustomCard imageSrc={'/assets/images/food-station.webp'} title={'Food Station'} cost={1000} Icon={'food'} nodeType="FoodImport" />
-                <CustomCard imageSrc={'/assets/images/connector-station.webp'} title={'Connector'} cost={1000} Icon={'ore'} nodeType="Connector" />
             </div>
         </div>
     )

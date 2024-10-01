@@ -10,6 +10,7 @@ import {
 } from '@xyflow/react';
 import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
+import { IoIosAlert } from 'react-icons/io';
 import { useGameStore } from '@/stores/useStore';
 import { useNodeStore } from './nodeStore';
 
@@ -22,10 +23,10 @@ interface NodeContextType {
   
 export const NodeContext = React.createContext<NodeContextType>({ nodes: [] });
 
-const resourceTypes = ['Ore', 'Fuel', 'Food', 'Connector'];
+const resourceTypes = ['Ore', 'Fuel', 'Food'];
 
 type ResourceType = typeof resourceTypes[number] | 'Spaceship';
-type NodeType = 'Export' | 'Import' | 'Connector' | 'Spaceship';
+type NodeType = 'Export' | 'Import' | 'Spaceship';
 
 interface NodeData {
     id: string;
@@ -68,7 +69,6 @@ const nodeImages = {
     FuelImport: '/assets/images/fuel-station.webp',
     FoodExport: '/assets/images/node-food.webp',
     FoodImport: '/assets/images/food-station.webp',
-    ConnectorConnector: '/assets/images/connector-station.webp',
     SpaceshipSpaceship: '/assets/images/spaceship.webp'
 };
 
@@ -138,6 +138,31 @@ const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: a
     );
 };
 
+const AlertModal = ({ isOpen, onClose, message }: any) => {
+    if (!isOpen) return null;
+  
+    return (
+        <div className='fixed inset-0 flex items-center justify-center mx-4'>
+            <div onClick={onClose} className='fixed inset-0 flex bg-black bg-opacity-50' />
+            <div className='bg-white p-4 rounded-lg z-50'>
+                <div className='flex items-center mb-1'>
+                    <IoIosAlert size={22} className='text-theme-alert mr-1' />
+                    <p className='text-lg text-theme-title font-medium'>Alert</p>
+                </div>
+                <span className='text-theme-subtitle'>{message}</span>
+                <div className='flex justify-end space-x-2 mt-2'>
+                    <button
+                        className='px-4 py-2 rounded bg-theme-button hover:bg-theme-button-h'
+                        onClick={onClose}
+                    >
+                        OK
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 interface FloatingNumberProps {
     value: number;
     efficiency: number;
@@ -157,16 +182,17 @@ const FloatingNumber: React.FC<FloatingNumberProps> = React.memo(({ value, effic
     }, [value, efficiency, resetAnimation]);
   
     useEffect(() => {
-      const interval = setInterval(() => {
-        setPosition(prev => {
-          if (prev <= -30) {
+        const moveInterval = setInterval(() => {
+            setPosition(prev => prev - 1);
+        }, 33.33);
+        return () => clearInterval(moveInterval);
+    }, []);
+    
+    useEffect(() => {
+        const resetInterval = setInterval(() => {
             resetAnimation();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 33);
-      return () => clearInterval(interval);
+        }, 1000);
+        return () => clearInterval(resetInterval);
     }, [resetAnimation]);
   
     if (displayValue === 0) return null;
@@ -277,26 +303,44 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
     const [ isHovered, setIsHovered ] = useState(false);
     const [ resourceChange, setResourceChange ] = useState(0);
 
+    useEffect(() => {
+        const latestNode: any = useNodeStore.getState().nodes[id];
+        if (latestNode && latestNode !== node) {
+            updateNode(id, latestNode.data);
+        }
+    }, [id, updateNode]);
+
     if (!node) {
         console.error(`Node with id ${id} not found`);
         return null;
     }
     
-    const { label, type, nodeType, displayName, size, handlePositions, supply, maxSupply } = node.data;
+    const { label, type, nodeType, displayName, size, handlePositions, supply, maxSupply, isTemporary } = node.data;
   
     useEffect(() => {
-        if (nodeType === 'Import' && isConnected) {
-          const interval = setInterval(() => {
-            const change = connectedEdgesCount * (efficiency / 100);
-            setResourceChange(change);
-            updateNode(id, {
-                data: {
-                    ...node.data,
-                    supply: Math.min(maxSupply, supply + change)
+        if (isConnected) {
+            const interval = setInterval(() => {
+                if(nodeType === 'Import') {
+                    const change = connectedEdgesCount * (efficiency / 100);
+                    setResourceChange(change);
+                    updateNode(id, {
+                        data: {
+                            ...node.data,
+                            supply: Math.min(maxSupply, supply + change)
+                        }
+                    });
+                } else if (nodeType === 'Export') {
+                    const change = connectedEdgesCount * (efficiency / 100);
+                    setResourceChange(-change);
+                    updateNode(id, {
+                        data: {
+                            ...node.data,
+                            supply: Math.max(0, supply - change)
+                        }
+                    });
                 }
-            });
-          }, 1000);
-          return () => clearInterval(interval);
+            }, 1000);
+            return () => clearInterval(interval);
         }
       }, [id, nodeType, maxSupply, supply, isConnected, connectedEdgesCount, efficiency, updateNode]);
   
@@ -329,13 +373,17 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
         <p><strong>{displayName} (#{id})</strong></p>
         <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={18} height={18} className='mx-1 w-[18px] h-[18px]' />} {type}</p>
         <p>Supply: {supply.toFixed(2)}/{maxSupply}</p>
-        {nodeType === 'Connector' && node.connectedNodes && (
-          <p>Connected Nodes: {node.connectedNodes.join(', ') || 'None'}</p>
-        )}
       </div>
     ), [id, nodeType, displayName, iconProps.Icon, type, supply, maxSupply, node.connectedNodes]);
   
     const renderHandles = useCallback(() => {
+        const commonStyle = {
+          width: 12,
+          height: 12,
+          borderColor: '#000000',
+          borderWidth: 1
+        };
+        
         if (nodeType === 'Spaceship' && Array.isArray(handlePositions.target)) {
           return handlePositions.target.map((position: any) => (
             <Handle 
@@ -343,48 +391,39 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
               type='target' 
               position={position} 
               id={`${position}-handle`}
-              style={{ 
+              style={{
+                ...commonStyle,
+                backgroundColor: '#dadada',
                 [position === Position.Left ? 'left' : position === Position.Right ? 'right' : '']: -10,
-                [position === Position.Top ? 'top' : position === Position.Bottom ? 'bottom' : '']: -10,
-                width: 12, 
-                height: 12,
-                background: '#FFFFFF',
-                borderRadius: '50%'
+                [position === Position.Top ? 'top' : position === Position.Bottom ? 'bottom' : '']: -10
               }} 
             />
           ));
         }
       
-        const commonStyle = {
-          width: 12,
-          height: 12,
-          background: '#FFFFFF',
-          border: 'none',
-        };
-      
         return (
           <>
-            {(nodeType === 'Import' || nodeType === 'Export' || nodeType === 'Connector') && (
-              <Handle 
-                type='source' 
-                position={handlePositions.source || Position.Right} 
-                id={`${handlePositions.source || Position.Right}-handle`}
-                style={{ 
-                  ...commonStyle,
-                  right: -6,
-                  clipPath: 'polygon(0% 0%, 100% 50%, 0% 100%)',
-                }} 
-              />
+            {(nodeType === 'Import' || nodeType === 'Export') && (
+                <Handle 
+                    type='source' 
+                    position={handlePositions.source || Position.Right} 
+                    id={`${handlePositions.source || Position.Right}-handle`}
+                    style={{ 
+                        ...commonStyle,
+                        right: -6,
+                        backgroundColor: '#ff0000'
+                    }} 
+                />
             )}
-            {(nodeType === 'Import' || nodeType === 'Connector') && handlePositions.target && !Array.isArray(handlePositions.target) && (
+            {(nodeType === 'Import') && handlePositions.target && !Array.isArray(handlePositions.target) && (
               <Handle 
                 type='target' 
                 position={handlePositions.target} 
                 id={`${handlePositions.target}-handle`}
                 style={{ 
-                  ...commonStyle,
-                  left: -6,
-                  borderRadius: nodeType === 'Connector' ? '50%' : '0%',
+                    ...commonStyle,
+                    left: -6,
+                    backgroundColor: '#00ff15'
                 }} 
               />
             )}
@@ -418,9 +457,10 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
                     priority
                 />
             </div>
+            <p className='text-[20px] text-white'>{isTemporary ? 'yes' : 'no'}</p>
             <Tooltip id={`tooltip-${id}`} render={() => tooltipContent} />
-            {isConnected && nodeType === 'Import' && (
-                <FloatingNumber 
+            {isConnected && supply < maxSupply && (
+                <FloatingNumber
                     key={`${resourceChange}-${efficiency}`} 
                     value={resourceChange} 
                     efficiency={efficiency} 
@@ -459,7 +499,7 @@ const initialNodes: Node<NodeData>[] = [
             id: '1', 
             displayName: 'Ore', 
             size: 'small',
-            supply: 1000,
+            supply: 10,
             maxSupply: 1000,
             handlePositions: {
                 source: Position.Right
@@ -478,7 +518,7 @@ const initialNodes: Node<NodeData>[] = [
             displayName: 'Ore Station', 
             size: 'small',
             supply: 0,
-            maxSupply: 1000,
+            maxSupply: 10,
             handlePositions: {
                 target: Position.Left,
                 source: Position.Right
@@ -527,50 +567,10 @@ const initialNodes: Node<NodeData>[] = [
         id: '5',
         type: 'custom',
         data: { 
-            label: 'Connector', 
-            type: 'Connector', 
-            nodeType: 'Connector', 
-            id: '5', 
-            displayName: 'Connector Node', 
-            size: 'small',
-            supply: 0,
-            maxSupply: 1000,
-            connectedNodes: [],
-            handlePositions: {
-                source: Position.Right,
-                target: Position.Left
-            }
-        },
-        position: { x: 100, y: 100 },
-    },
-    {
-        id: '6',
-        type: 'custom',
-        data: { 
-            label: 'Connector', 
-            type: 'Connector', 
-            nodeType: 'Connector', 
-            id: '6', 
-            displayName: 'Connector Node', 
-            size: 'small',
-            supply: 0,
-            maxSupply: 1000,
-            connectedNodes: [],
-            handlePositions: {
-                source: Position.Right,
-                target: Position.Left
-            }
-        },
-        position: { x: 100, y: 200 },
-    },
-    {
-        id: '7',
-        type: 'custom',
-        data: { 
             label: 'Food Export', 
             type: 'Food', 
             nodeType: 'Export', 
-            id: '7', 
+            id: '5', 
             displayName: 'Food', 
             size: 'medium',
             supply: 1000,
@@ -703,8 +703,10 @@ const GameplayScreen = () => {
     const [ nodeIdCounter, setNodeIdCounter ] = useState(7);
     const [ edgeModalOpen, setEdgeModalOpen ] = useState(false);
     const [ nodeModalOpen, setNodeModalOpen ] = useState(false);
+    const [ alertModalOpen, setAlertModalOpen ] = useState(false);
     const [ edgeToDelete, setEdgeToDelete ] = useState<any>(null);
     const [ nodeToDelete, setNodeToDelete ] = useState<any>(null);
+    const [ alertMessage, setAlertMessage ] = useState('');
     const [ connectionStart, setConnectionStart ] = useState({ x: 0, y: 0 });
     const [ mousePosition, setMousePosition ] = useState({ x: 0, y: 0 });
     const [ isConnecting, setIsConnecting ] = useState(false);
@@ -714,7 +716,7 @@ const GameplayScreen = () => {
 
     useEffect(() => {
         initializeNodes(initialNodes);
-      }, []);
+    }, []);
 
     const onConnectStart = useCallback((event: any, { nodeId, handleType, handleId }: any) => {
         const targetNode = nodes.find(n => n.id === nodeId);
@@ -805,7 +807,7 @@ const GameplayScreen = () => {
     
         const change = baseChange * connectedEdgesCount * trafficFactor * efficiencyFactor;
         
-        return nodeType === 'Export' ? change : -change; // เพิ่มสำหรับ Export, ลดสำหรับ Import
+        return nodeType === 'Export' ? -change : change; // ลดสำหรับ Export, เพิ่มสำหรับ Import
     }, [nodes, edges, getConnectedEdgesCount, calculateEfficiency]);
 
     const onConnect = useCallback((params: any) => {
@@ -823,7 +825,8 @@ const GameplayScreen = () => {
         );
     
         if (distance > 1000) {
-            alert('Connection distance exceeds ' + distance.toFixed(0) + '/200 units. Unable to connect nodes.');
+            setAlertMessage('Connection distance exceeds ' + distance.toFixed(0) + '/200 units. Unable to connect nodes.');
+            setAlertModalOpen(true);
             return;
         }
 
@@ -841,12 +844,6 @@ const GameplayScreen = () => {
             (sourceNode.data.type === targetNode.data.type &&
              sourceNode.data.nodeType === 'Export' &&
              targetNode.data.nodeType === 'Import') ||
-            (sourceNode.data.nodeType === 'Export' &&
-             targetNode.data.nodeType === 'Connector') ||
-            (sourceNode.data.nodeType === 'Connector' &&
-             targetNode.data.nodeType === 'Import') ||
-            (sourceNode.data.nodeType === 'Connector' &&
-             targetNode.data.nodeType === 'Connector') ||
             (sourceNode.data.nodeType === 'Import' &&
              targetNode.data.nodeType === 'Spaceship' &&
              ['Ore', 'Fuel', 'Food'].includes(sourceNode.data.type)) ||
@@ -860,7 +857,8 @@ const GameplayScreen = () => {
                 edge.source === sourceNode.id && sourceNode.data.nodeType === 'Export'
             );
             if (existingEdge && sourceNode.data.nodeType === 'Export') {
-                alert('Export node can only have one connection.');
+                setAlertMessage('Export node can only have one connection.');
+                setAlertModalOpen(true);
                 return;
             }
 
@@ -870,19 +868,8 @@ const GameplayScreen = () => {
                     edge.source === spaceshipNode.id || edge.target === spaceshipNode.id
                 );
                 if (connectedEdges.length >= 4) {
-                    alert('Spaceship can have a maximum of 4 connections.');
-                    return;
-                }
-            }
-    
-            const maxConnectorConnections = 3;
-            if (sourceNode.data.nodeType === 'Connector' || targetNode.data.nodeType === 'Connector') {
-                const connectorNode = sourceNode.data.nodeType === 'Connector' ? sourceNode : targetNode;
-                const connectorEdges = edges.filter(edge => 
-                    edge.source === connectorNode.id || edge.target === connectorNode.id
-                );
-                if (connectorEdges.length >= maxConnectorConnections) {
-                    alert(`Connector node can have a maximum of ${maxConnectorConnections} connections.`);
+                    setAlertMessage('Spaceship can have a maximum of 4 connections.');
+                    setAlertModalOpen(true);
                     return;
                 }
             }
@@ -903,7 +890,7 @@ const GameplayScreen = () => {
                     nds.map((node) => {
                         if (node.id === sourceNode.id && node.data.nodeType === 'Export') {
                             const resourceChange = calculateResourceChange(node.id, 'Export');
-                            const newSupply = Math.max(0, Math.min(node.data.maxSupply, node.data.supply + resourceChange));
+                            const newSupply = Math.max(0, Math.min(node.data.maxSupply, node.data.supply - resourceChange));
                             return { 
                                 ...node, 
                                 data: { 
@@ -928,17 +915,6 @@ const GameplayScreen = () => {
                                 } 
                             };
                         }
-                        if (node.id === sourceNode.id && node.data.nodeType === 'Connector') {
-                            return {
-                                ...node, 
-                                data: { 
-                                    ...node.data, 
-                                    isConnected: true, 
-                                    connectedEdgesCount: getConnectedEdgesCount(node.id) + 1,
-                                    connectedNodes: [...(node.data.connectedNodes || []), targetNode.id]
-                                } 
-                            };
-                        }
                         return node;
                     })
                 );
@@ -946,7 +922,8 @@ const GameplayScreen = () => {
                 return updatedEdges;
             });
         } else {
-            alert('Invalid connection. Check the rules for connecting nodes.');
+            setAlertMessage('Invalid connection. Check the rules for connecting nodes.');
+            setAlertModalOpen(true);
         }
     }, [nodes, edges, setEdges, calculateTraffic, setNodes, getConnectedEdgesCount, calculateResourceChange]);
 
@@ -958,6 +935,10 @@ const GameplayScreen = () => {
     const handleCancelNodeDelete = useCallback(() => {
         setNodeModalOpen(false);
         setNodeToDelete(null);
+    }, []);
+
+    const handleAlertModal = useCallback(() => {
+        setAlertModalOpen(false);
     }, []);
 
     const handleConfirmEdgeDelete = useCallback(() => {
@@ -1023,17 +1004,6 @@ const GameplayScreen = () => {
                             } 
                         };
                     }
-                    if ((node.id === edge.source || node.id === edge.target) && node.data.nodeType === 'Connector') {
-                        return {
-                            ...node,
-                            data: {
-                                ...node.data,
-                                isConnected: getConnectedEdgesCount(node.id) > 1,
-                                connectedEdgesCount: Math.max(0, getConnectedEdgesCount(node.id) - 1),
-                                connectedNodes: node.data.connectedNodes?.filter((id: string) => id !== (node.id === edge.source ? edge.target : edge.source))
-                            }
-                        };
-                    }
                     return node;
                 })
             );
@@ -1073,8 +1043,8 @@ const GameplayScreen = () => {
         const centerX = window.innerWidth / 2;
         const centerY = window.innerHeight / 2;
         
-        const nodeCategory = nodeType.includes('Import') ? 'Import' : nodeType === 'Connector' ? 'Connector' : 'Export';
-        const resourceType = nodeType.replace('Import', '').replace('Export', '').replace('Connector', 'Connector');
+        const nodeCategory = nodeType.includes('Import') ? 'Import' : 'Export';
+        const resourceType = nodeType.replace('Import', '').replace('Export', '');
 
         const newNode: Node<NodeData> = {
             id: newNodeId,
@@ -1089,8 +1059,7 @@ const GameplayScreen = () => {
                 supply: 0,
                 maxSupply: 1000,
                 handlePositions: {
-                    target: Position.Left,
-                    ...(nodeCategory === 'Connector' ? { source: Position.Right } : {})
+                    target: Position.Left
                 },
                 connectedNodes: [],
                 isTemporary: true
@@ -1098,8 +1067,7 @@ const GameplayScreen = () => {
             position: { x: centerX, y: centerY },
             draggable: true,
         };
-
-        console.log('Creating temporary node:', newNode);
+        
         setTemporaryNode(newNode);
         setNodeIdCounter((prev) => prev + 1);
         useNodeStore.getState().addNode(newNode);
@@ -1140,18 +1108,20 @@ const GameplayScreen = () => {
 
     const confirmNodePlacement = () => {
         if (temporaryNode && isNodeValid) {
-          const confirmedNode = {
-            ...temporaryNode,
-            data: { 
-              ...temporaryNode.data, 
-              isTemporary: false,
-              imagePath: nodeImages[`${temporaryNode.data.type}${temporaryNode.data.nodeType}` as keyof typeof nodeImages]
-            },
-            draggable: false
-          };
-          setNodes(prevNodes => [...prevNodes, confirmedNode]);
-          useNodeStore.getState().updateNode(confirmedNode.id, confirmedNode.data);
-          setTemporaryNode(null);
+            const confirmedNodeData = {
+                ...temporaryNode.data,
+                isTemporary: false,
+                imagePath: nodeImages[`${temporaryNode.data.type}${temporaryNode.data.nodeType}` as keyof typeof nodeImages]
+            };
+    
+            const confirmedNode = {
+                ...temporaryNode,
+                data: confirmedNodeData,
+                draggable: false
+            };
+            setNodes(prevNodes => [...prevNodes, confirmedNode]);
+            useNodeStore.getState().updateNode(confirmedNode.id, confirmedNodeData);
+            setTemporaryNode(null);
         }
       };
 
@@ -1229,7 +1199,12 @@ const GameplayScreen = () => {
                             onDelete={handleConfirmNodeDelete}
                             onDetail={() => {/* Implement detail action */}}
                             node={nodeToDelete}
-                            canDelete={nodeToDelete && (nodeToDelete.data.nodeType === 'Import' || nodeToDelete.data.nodeType === 'Connector') && getConnectedEdgesCount(nodeToDelete.id) === 0}
+                            canDelete={nodeToDelete && (nodeToDelete.data.nodeType === 'Import') && getConnectedEdgesCount(nodeToDelete.id) === 0}
+                        />
+                        <AlertModal
+                            isOpen={alertModalOpen}
+                            onClose={handleAlertModal}
+                            message={alertMessage}
                         />
                     </div>
                 </div>
