@@ -144,16 +144,16 @@ interface FloatingNumberProps {
 }
 
 const FloatingNumber: React.FC<FloatingNumberProps> = React.memo(({ value, efficiency }) => {
-    const [position, setPosition] = useState(0);
-    const [displayValue, setDisplayValue] = useState(0);
+    const [ position, setPosition ] = useState(0);
+    const [ displayValue, setDisplayValue ] = useState(0);
     
     const resetAnimation = useCallback(() => {
-      setPosition(0);
-      setDisplayValue(Math.max(0, value * (efficiency / 100)));
+        setPosition(0);
+        setDisplayValue(Math.max(0, value * (efficiency / 100)));
     }, [value, efficiency]);
   
     useEffect(() => {
-      resetAnimation();
+        resetAnimation();
     }, [value, efficiency, resetAnimation]);
   
     useEffect(() => {
@@ -281,7 +281,7 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
         console.error(`Node with id ${id} not found`);
         return null;
     }
-  
+    
     const { label, type, nodeType, displayName, size, handlePositions, supply, maxSupply } = node.data;
   
     useEffect(() => {
@@ -290,7 +290,10 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
             const change = connectedEdgesCount * (efficiency / 100);
             setResourceChange(change);
             updateNode(id, {
-              supply: Math.min(maxSupply, supply + change)
+                data: {
+                    ...node.data,
+                    supply: Math.min(maxSupply, supply + change)
+                }
             });
           }, 1000);
           return () => clearInterval(interval);
@@ -323,7 +326,7 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
   
     const tooltipContent = useMemo(() => (
       <div>
-        <p><strong>{nodeType === 'Export' ? '🔴' : '🟢'} {displayName} (# {id})</strong></p>
+        <p><strong>{displayName} (#{id})</strong></p>
         <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={18} height={18} className='mx-1 w-[18px] h-[18px]' />} {type}</p>
         <p>Supply: {supply.toFixed(2)}/{maxSupply}</p>
         {nodeType === 'Connector' && node.connectedNodes && (
@@ -361,7 +364,7 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
       
         return (
           <>
-            {(nodeType === 'Export' || nodeType === 'Connector') && (
+            {(nodeType === 'Import' || nodeType === 'Export' || nodeType === 'Connector') && (
               <Handle 
                 type='source' 
                 position={handlePositions.source || Position.Right} 
@@ -418,9 +421,9 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
             <Tooltip id={`tooltip-${id}`} render={() => tooltipContent} />
             {isConnected && nodeType === 'Import' && (
                 <FloatingNumber 
-                key={`${resourceChange}-${efficiency}`} 
-                value={resourceChange} 
-                efficiency={efficiency} 
+                    key={`${resourceChange}-${efficiency}`} 
+                    value={resourceChange} 
+                    efficiency={efficiency} 
                 />
             )}
         </>
@@ -477,7 +480,8 @@ const initialNodes: Node<NodeData>[] = [
             supply: 0,
             maxSupply: 1000,
             handlePositions: {
-                target: Position.Left
+                target: Position.Left,
+                source: Position.Right
             }
         },
         position: { x: 300, y: 100 },
@@ -513,7 +517,8 @@ const initialNodes: Node<NodeData>[] = [
             supply: 0,
             maxSupply: 1000,
             handlePositions: {
-                target: Position.Left
+                target: Position.Left,
+                source: Position.Right
             }
         },
         position: { x: 300, y: 200 },
@@ -842,10 +847,12 @@ const GameplayScreen = () => {
              targetNode.data.nodeType === 'Import') ||
             (sourceNode.data.nodeType === 'Connector' &&
              targetNode.data.nodeType === 'Connector') ||
-            (sourceNode.data.nodeType === 'Export' &&
-             targetNode.data.nodeType === 'Spaceship') ||
+            (sourceNode.data.nodeType === 'Import' &&
+             targetNode.data.nodeType === 'Spaceship' &&
+             ['Ore', 'Fuel', 'Food'].includes(sourceNode.data.type)) ||
             (sourceNode.data.nodeType === 'Spaceship' &&
-             targetNode.data.nodeType === 'Import')
+             targetNode.data.nodeType === 'Import' &&
+             ['Ore', 'Fuel', 'Food'].includes(targetNode.data.type))
         );
     
         if (isValidConnection) {
@@ -922,7 +929,7 @@ const GameplayScreen = () => {
                             };
                         }
                         if (node.id === sourceNode.id && node.data.nodeType === 'Connector') {
-                            return { 
+                            return {
                                 ...node, 
                                 data: { 
                                     ...node.data, 
@@ -1041,11 +1048,7 @@ const GameplayScreen = () => {
     useEffect(() => {
         setEdges((eds) => calculateTraffic(eds, nodes));
     }, [nodes, setEdges, calculateTraffic]);
-
-    const updateNodeData = useCallback((id: string, newData: Partial<NodeData>) => {
-        setNodes((nds) => nds.map((node) => node.id === id ? { ...node, data: { ...node.data, ...newData } } : node));
-    }, [setNodes]);
-
+    
     const updateNode = useNodeStore((state) => state.updateNode);
     
     const nodeTypes = useMemo(() => ({
@@ -1186,7 +1189,7 @@ const GameplayScreen = () => {
                             multiSelectionKeyCode={null}
                             selectionKeyCode={null}
                         >
-                            <Controls showInteractive={false} />
+                            <Controls showInteractive={false} position='top-right' />
                             <Background variant={BackgroundVariant.Dots} gap={10} size={1} />
                             {isConnecting && (
                                 <DistanceIndicator

@@ -1,7 +1,7 @@
 'use client'
 import React, { useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { SolflareWalletAdapter, TorusWalletAdapter, LedgerWalletAdapter, UnsafeBurnerWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { SolflareWalletAdapter, TorusWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider } from '@solana/wallet-adapter-react';  
 import { clusterApiUrl } from '@solana/web3.js';
@@ -38,8 +38,7 @@ const Web3Provider = ({ children }: Web3ProviderProps) => {
     const wallets = useMemo(() => [
         new SolflareWalletAdapter({ network }),
         new TorusWalletAdapter(),
-        new LedgerWalletAdapter(),
-        new UnsafeBurnerWalletAdapter()
+        new LedgerWalletAdapter()
     ], [network]);
  
     return (
