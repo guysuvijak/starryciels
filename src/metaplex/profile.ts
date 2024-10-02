@@ -56,7 +56,10 @@ export const CreateProfile = async (owner: string, nickname: string) => {
                 type: 'Attributes',
                 attributeList: [
                     { key: 'birthday', value: currentDate },
-                    { key: 'nickname', value: nickname }
+                    { key: 'nickname', value: nickname },
+                    { key: 'ore', value: '0' },
+                    { key: 'fuel', value: '0' },
+                    { key: 'food', value: '0' }
                 ]
             }
         ],
