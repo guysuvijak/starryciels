@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '@/stores/useStore';
 import { FaArrowLeft } from 'react-icons/fa';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { FaExternalLinkAlt, FaInfoCircle } from 'react-icons/fa';
+import { FaExternalLinkAlt, FaInfoCircle, FaSyncAlt } from 'react-icons/fa';
 import { SiSolana } from 'react-icons/si';
 import { RiSpaceShipFill } from 'react-icons/ri';
 import { Tooltip } from 'react-tooltip';
@@ -45,7 +45,22 @@ const tooltipContent = (planet: any) => {
     )
 };
 
-const OwnPlanetComponent = ({data, isLoading, onBuyClick}: {data: any, isLoading: boolean, onBuyClick: () => void}) => {
+const RefreshDataButton = ({ onClick, isLoading, cooldown }: { onClick: () => void; isLoading: boolean; cooldown: number }) => {
+    return (
+        <button
+            onClick={onClick}
+            disabled={isLoading || cooldown > 0}
+            className={`absolute top-2 right-2 font-bold py-2 px-4 rounded-full transition duration-300 flex items-center ${
+                cooldown > 0 || isLoading ? 'bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'
+            }`}
+        >
+            <FaSyncAlt size={18} className={`mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            {cooldown > 0 ? `Wait (${cooldown}s)` : 'Refresh'}
+        </button>
+    );
+};
+
+const OwnPlanetComponent = ({data, isLoading, onBuyClick, onRefresh, cooldown}: {data: any, isLoading: boolean, onBuyClick: () => void, onRefresh: () => void, cooldown: number}) => {
     const { setGameMenu, setLandingPublic, setLandingColor } = useGameStore();
 
     const handleOnClick = async (publicKey: string, color: string) => {
@@ -73,8 +88,9 @@ const OwnPlanetComponent = ({data, isLoading, onBuyClick}: {data: any, isLoading
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl flex flex-col justify-center items-center'
+                className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl flex flex-col justify-center items-center relative'
             >
+                <RefreshDataButton onClick={onRefresh} isLoading={isLoading} cooldown={cooldown} />
                 <p className='text-xl font-semibold'>No Planets Found</p>
                 <p className='text-xl font-semibold my-2'>Get first new planet</p>
                 <button onClick={onBuyClick} className='flex items-center bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-xl transition duration-300'>
@@ -89,8 +105,9 @@ const OwnPlanetComponent = ({data, isLoading, onBuyClick}: {data: any, isLoading
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto'
+            className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto relative'
         >
+            <RefreshDataButton onClick={onRefresh} isLoading={isLoading} cooldown={cooldown} />
             <h2 className='text-2xl font-bold mb-4'>Your NFT Planets ({data.length})</h2>
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
             {data.map((planet: any) => (
@@ -134,7 +151,7 @@ const OwnPlanetComponent = ({data, isLoading, onBuyClick}: {data: any, isLoading
     )
 };
 
-const OtherPlanetComponent = ({data, wallet, isLoading}: {data: any, wallet: string, isLoading: boolean}) => {
+const OtherPlanetComponent = ({ data, wallet, isLoading, onRefresh, cooldown }: { data: any, wallet: string, isLoading: boolean, onRefresh: () => void, cooldown: number }) => {
     if (isLoading) {
         return (
             <motion.div
@@ -154,8 +171,9 @@ const OtherPlanetComponent = ({data, wallet, isLoading}: {data: any, wallet: str
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl flex justify-center items-center'
+                className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl flex justify-center items-center relative'
             >
+                <RefreshDataButton onClick={onRefresh} isLoading={isLoading} cooldown={cooldown} />
                 <p className='text-xl font-semibold'>No Other Planets Found</p>
             </motion.div>
         );
@@ -166,8 +184,9 @@ const OtherPlanetComponent = ({data, wallet, isLoading}: {data: any, wallet: str
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto'
+            className='bg-indigo-800 rounded-lg p-6 mt-8 w-full max-w-4xl max-h-[400px] overflow-y-auto relative'
         >
+            <RefreshDataButton onClick={onRefresh} isLoading={isLoading} cooldown={cooldown} />
             <h2 className='text-2xl font-bold mb-4'>Other Players Planets ({data.length})</h2>
             <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'>
             {data.map((planet: any) => (
@@ -267,12 +286,24 @@ const MotherScreen = () => {
     const [ menuState, setMenuState ] = useState<string | null>(null);
     const [ ownPlanetData, setOwnPlanetData ] = useState<any>([]);
     const [ otherPlanetData, setOtherPlanetData ] = useState<any>([]);
-    const [ isLoading, setIsLoading ] = useState(true);
     const [ refreshTrigger, setRefreshTrigger ] = useState(0);
+    const [ isLoadingOwn, setIsLoadingOwn ] = useState(true);
+    const [ isLoadingOther, setIsLoadingOther ] = useState(true);
+    const [ cooldown, setCooldown ] = useState(0);
 
     useEffect(() => {
         getDataInitial();
     }, [refreshTrigger]);
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        if (cooldown > 0) {
+            timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+        }
+        return () => {
+            if (timer) clearTimeout(timer);
+        };
+    }, [cooldown]);
 
     const sortedPlanet = (data: any) => {
         return data.sort((a: any, b: any) => {
@@ -283,16 +314,48 @@ const MotherScreen = () => {
     };
 
     const getDataInitial = async () => {
-        setIsLoading(true);
+        setIsLoadingOwn(true);
+        setIsLoadingOther(true);
         try {
             const ownPlanet = await FetchOwnPlanet(String(wallet.publicKey));
             setOwnPlanetData(sortedPlanet(ownPlanet));
+            setIsLoadingOwn(false);
+
             const otherPlanet = await FetchOtherPlanet();
             setOtherPlanetData(sortedPlanet(otherPlanet));
+            setIsLoadingOther(false);
         } catch (error) {
             console.error("Error fetching planet data:", error);
-        } finally {
-            setIsLoading(false);
+        }
+    };
+
+    const refreshOwnData = async () => {
+        if (cooldown === 0) {
+            setIsLoadingOwn(true);
+            setCooldown(10);
+            try {
+                const ownPlanet = await FetchOwnPlanet(String(wallet.publicKey));
+                setOwnPlanetData(sortedPlanet(ownPlanet));
+            } catch (error) {
+                console.error("Error refreshing own planet data:", error);
+            } finally {
+                setIsLoadingOwn(false);
+            }
+        }
+    };
+
+    const refreshOtherData = async () => {
+        if (cooldown === 0) {
+            setIsLoadingOther(true);
+            setCooldown(10);
+            try {
+                const otherPlanet = await FetchOtherPlanet();
+                setOtherPlanetData(sortedPlanet(otherPlanet));
+            } catch (error) {
+                console.error("Error refreshing other planet data:", error);
+            } finally {
+                setIsLoadingOther(false);
+            }
         }
     };
 
@@ -356,8 +419,8 @@ const MotherScreen = () => {
                 ))}
             </div>
             <AnimatePresence mode='wait'>
-                {menuState === 'own' && <OwnPlanetComponent key='own' data={ownPlanetData} isLoading={isLoading} onBuyClick={() => setMenuState('buy')} />}
-                {menuState === 'other' && <OtherPlanetComponent key='other' data={otherPlanetData} wallet={String(wallet.publicKey)} isLoading={isLoading} />}
+                {menuState === 'own' && <OwnPlanetComponent key='own' data={ownPlanetData} isLoading={isLoadingOwn} onBuyClick={() => setMenuState('buy')} onRefresh={refreshOwnData} cooldown={cooldown} />}
+                {menuState === 'other' && <OtherPlanetComponent key='other' data={otherPlanetData} wallet={String(wallet.publicKey)} isLoading={isLoadingOther} onRefresh={refreshOtherData} cooldown={cooldown} />}
                 {menuState === 'buy' && <BuyPlanetComponent key='buy' wallet={String(wallet.publicKey)} onCheckClick={() => setMenuState('own')} onBuySuccess={handleBuySuccess} />}
             </AnimatePresence>
         </div>

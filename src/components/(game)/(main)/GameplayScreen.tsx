@@ -11,6 +11,7 @@ import {
 import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
 import { IoIosAlert } from 'react-icons/io';
+import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { useGameStore } from '@/stores/useStore';
 import { useNodeStore } from './nodeStore';
 
@@ -129,7 +130,7 @@ const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: a
                             onClick={onDelete}
                             disabled={!canDelete}
                         >
-                            Delete
+                            Destroy
                         </button>
                     )}
                 </div>
@@ -457,7 +458,13 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
                     priority
                 />
             </div>
-            <p className='text-[20px] text-white'>{isTemporary ? 'yes' : 'no'}</p>
+            <p className='absolute text-[20px] text-white'>{isTemporary ? 'yes' : 'no'}</p>
+            {isTemporary &&
+                <div className='flex absolute z-10 items-center justify-center'>
+                    <button className='px-2 py-1 mr-1 bg-[#dd1111] rounded-sm'><FaTimesCircle size={14} /></button>
+                    <button className='px-2 py-1 ml-1 bg-[#16cf35] rounded-sm'><FaCheckCircle size={14} /></button>
+                </div>
+            }
             <Tooltip id={`tooltip-${id}`} render={() => tooltipContent} />
             {isConnected && supply < maxSupply && (
                 <FloatingNumber
