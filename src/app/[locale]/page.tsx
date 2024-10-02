@@ -14,7 +14,7 @@ import AboutCosmicNFTs from '@/components/(website)/AboutCosmicNFTs';
 import HeaderText from '@/components/(website)/HeaderText';
 
 const SciFiTitle = () => {
-    const titleText = "Starry Ciels";
+    const titleText = "StarryCiels";
 
     return (
         <h1 className="text-5xl md:text-7xl font-bold mb-4 relative">
@@ -77,7 +77,7 @@ const VideoGame = () => {
                         <iframe
                             className="w-full h-full rounded-lg"
                             src="https://www.youtube.com/embed/H50Vkei4nD0"
-                            title="Starry Ciels Demo"
+                            title="StarryCiels Demo"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                         ></iframe>
@@ -135,9 +135,9 @@ const NFTShowcase = () => {
 
 const Roadmap = () => {
     const milestones = [
-        { phase: "Phase 1", title: "Launch", description: "Initial release of 1000 Starry Ciels NFTs" },
+        { phase: "Phase 1", title: "Launch", description: "Initial release of 1000 StarryCiels NFTs" },
         { phase: "Phase 2", title: "Expansion", description: "Introduction of planetary systems and galaxies" },
-        { phase: "Phase 3", title: "Integration", description: "Launch of the Starry Ciels metaverse" },
+        { phase: "Phase 3", title: "Integration", description: "Launch of the StarryCiels metaverse" },
         // Add more milestones as needed
     ];
 
@@ -172,7 +172,7 @@ const Roadmap = () => {
 const CommunityAndFAQ = () => {
     const faqs = [
         { question: "What is an NFT?", answer: "NFT stands for Non-Fungible Token. It's a unique digital asset verified using blockchain technology." },
-        { question: "How can I purchase a Starry Ciels NFT?", answer: "You can purchase our NFTs through our official website or authorized NFT marketplaces." },
+        { question: "How can I purchase a StarryCiels NFT?", answer: "You can purchase our NFTs through our official website or authorized NFT marketplaces." },
         // Add more FAQs as needed
     ];
 

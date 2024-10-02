@@ -79,18 +79,7 @@ const nextConfig = {
                 source: '/',
                 destination: '/en',
                 permanent: true,
-            },
-            //{
-            //    source: '/:path*',
-            //    has: [
-            //        {
-            //            type: 'host',
-            //            value: 'starryciels.vercel.app',
-            //        },
-            //    ],
-            //    destination: 'http://starryciels.vercel.app/:path*',
-            //    permanent: true,
-            //},
+            }
         ];
     },
     images: {

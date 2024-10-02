@@ -11,7 +11,7 @@ import { LocaleLayoutProps } from '@/types/(global)/Global';
 
 function generateAlternateLinks(currentLocale: string, pathname: string) {
     const locales = ['en', 'th'];
-    const baseUrl = 'https://starryciels.vercel.app/en';
+    const baseUrl = 'https://starryciels.vercel.app';
     
     const pathWithoutLocale = pathname.replace(/^\/[a-z]{2}/, '');
     

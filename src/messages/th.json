@@ -10,10 +10,10 @@
         "lobby": "ล็อบบี้"
     },
     "Metadata": {
-        "title": "Starry Ciel",
-        "description": "StarryCiels is Game NFT Fully on-chain 100% on Solana, an enchanting exploration and adventure game set in a vast, fantastical universe filled with stars and celestial wonders. Players control the colony as they journey through diverse realms amidst a galaxy of stars and cosmic clouds.",
+        "title": "StarryCiels",
+        "description": "StarryCiels is a sandbox-style space exploration game that leverages Solana Blockchain and Metaplex technologies to introduce a new form of Web3 gaming that is easily accessible for both players and developers. The game allows players to own planets (Planet NFTs), explore, gather resources, build, develop, and enjoy many other supporting features.",
         "domain": "https://starryciels.vercel.app/en",
-        "image-alt": "Starry Ciel"
+        "image-alt": "StarryCiels"
     },
     "Theme": {
         "locale": "th",
