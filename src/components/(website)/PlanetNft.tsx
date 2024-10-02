@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
-import HeaderText from '@/components/(website)/HeaderText';
+import HeaderText from '@/components/(element)/HeaderText';
 
 interface ShipCardProps {
     ship: {
@@ -38,7 +38,7 @@ const ShipCard = ({ ship, index }: ShipCardProps) => (
     </motion.div>
 );
 
-const AboutCosmicNFTs = () => {
+const PlanetNft = () => {
     const ships = [
         {
             name: "Stellar Voyager",
@@ -63,14 +63,14 @@ const AboutCosmicNFTs = () => {
     return (
         <section className="py-20 px-4 bg-gray-900">
             <div className="max-w-6xl mx-auto">
-                <HeaderText title={'About Our Cosmic NFTs'} />
+                <HeaderText title={'Planet NFTs'} />
                 <motion.p 
                     className="text-lg mb-12 text-center text-gray-300"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
                 >
-                    Explore our unique collection of interstellar vessels, each with its own history and capabilities.
+                    Explore our unique collection of planet, each with its own history and many attributes.
                 </motion.p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {ships.map((ship, index) => (
@@ -82,4 +82,4 @@ const AboutCosmicNFTs = () => {
     );
 };
 
-export default AboutCosmicNFTs;
+export default PlanetNft;

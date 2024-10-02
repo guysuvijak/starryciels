@@ -14,5 +14,5 @@ umi.use(signerIdentity(collectionSigner));
 
 export const txConfig: TransactionBuilderSendAndConfirmOptions = {
     send: { skipPreflight: true },
-    confirm: { commitment: 'processed' },
+    confirm: { commitment: 'processed' }
 };

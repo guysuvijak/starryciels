@@ -1,10 +1,7 @@
 import { motion } from 'framer-motion';
 import { LuLoader2 } from 'react-icons/lu';
 
-interface SpinningLoaderProps {
-    size?: number;
-    speed?: number;
-};
+import { SpinningLoaderProps } from '@/types/(components)/Element';
 
 const SpinningLoader = ({size, speed}: SpinningLoaderProps) => {
     return (
