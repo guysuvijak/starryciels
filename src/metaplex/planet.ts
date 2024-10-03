@@ -1,11 +1,12 @@
 import { publicKey, generateSigner, transactionBuilder, sol } from '@metaplex-foundation/umi';
 import { fetchCollection, create, fetchAssetsByOwner, update, fetchAsset, fetchAssetsByCollection } from '@metaplex-foundation/mpl-core';
 import { transferSol } from '@metaplex-foundation/mpl-toolbox';
-import { umi, txConfig } from '@/utils/umi';
+import { umi, DelegateSigner } from '@/utils/umi';
 
 const creator1 = publicKey('HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH');
 const addressPlanetCollection = publicKey(process.env.ADDRESS_COLLECTION_PLANET as string);
 const addressUpdated = publicKey(process.env.ADDRESS_SIGNER as string);
+const masterSigner = publicKey(DelegateSigner);
 
 const randomNickname = (no: number) => {
     const letters = Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('');
@@ -80,11 +81,6 @@ export const CreatePlanet = async (owner: string) => {
     const base64Uri = `data:application/json;base64,${metadataBase64}`;
 
     const tx = transactionBuilder()
-        .add(transferSol(umi, {
-            source: umi.identity,
-            destination: creator1,
-            amount: sol(1),
-        }))
         .add(create(umi, {
             name: metadataName,
             uri: base64Uri,
@@ -94,12 +90,12 @@ export const CreatePlanet = async (owner: string) => {
             plugins: [
                 {
                     type: 'TransferDelegate',
-                    authority: { type: 'Address', address: addressPlanetCollection },
+                    authority: { type: 'Address', address: masterSigner },
                 },
                 {
                     type: 'UpdateDelegate',
-                    authority: { type: 'Address', address: addressPlanetCollection },
-                    additionalDelegates: [addressUpdated]
+                    authority: { type: 'Address', address: masterSigner },
+                    additionalDelegates: []
                 },
                 {
                     type: 'Attributes',
@@ -109,7 +105,7 @@ export const CreatePlanet = async (owner: string) => {
         }));
 
     try {
-        const response = await tx.sendAndConfirm(umi, txConfig);
+        const response = await tx.sendAndConfirm(umi);
         return { response, assetAddress: assetSigner.publicKey };
     } catch (error) {
         console.error('Failed to create planet:', error);
@@ -117,14 +113,9 @@ export const CreatePlanet = async (owner: string) => {
     }
 };
 
-export const CheckPlanet = async (owner: string) => {
-    const assetsByOwner = await fetchAssetsByOwner(umi, owner, {
-        skipDerivePlugins: false
-    })
-    const collectionAssets = assetsByOwner.filter((asset: any) => 
-        asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressPlanetCollection.toString()
-    );
-    return collectionAssets;
+export const FetchPlanet = async (assetId: any) => {
+    const asset = await fetchAsset(umi, assetId);
+    return asset;
 };
 
 export const FetchOwnPlanet = async (owner: string) => {
@@ -155,6 +146,6 @@ export const UpdatePlanet = async (owner: string, assetId: any) => {
     const response = await update(umi, {
         asset: asset,
         uri: newUri
-    }).sendAndConfirm(umi, txConfig);
+    }).sendAndConfirm(umi);
     return response;
 };

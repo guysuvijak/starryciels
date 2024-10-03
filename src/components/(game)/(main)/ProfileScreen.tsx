@@ -6,6 +6,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useTranslations } from 'next-intl';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 import { useGameStore } from '@/stores/useStore';
+import axios from 'axios';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 import ParallaxEffect from '@/components/(element)/ParallaxEffect';
@@ -20,7 +21,7 @@ const WalletMultiButton = dynamic(
 
 const ProfileScreen = () => {
     const t = useTranslations('Profile');
-    const { setGameMenu, setProfilePublic, setLandingPublic } = useGameStore();
+    const { setGameMenu, setProfilePublic, setLandingPublic, setNicknameProfile } = useGameStore();
     const wallet = useWallet();
     const walletConnect = wallet.connected;
 
@@ -84,6 +85,24 @@ const ProfileScreen = () => {
                 const response = await CreateProfile(String(wallet.publicKey), nickName);
                 if(response) {
                     checkProfile();
+                    await axios.post('https://discord.com/api/webhooks/1291441018691915866/NbyinPz7Wfbm51-BAfM9ttBWYDj5rEmP9AAnvdSVIlVHN-nzZMr73TIUEGjaZZeyde9R', {
+                        content: null,
+                        embeds: [
+                            {
+                                "title": "name",
+                                "description": "- Owner: **" + "nicknameProfile",
+                                "url": `https://core.metaplex.com/explorer/${response.assetAddress}?env=devnet`,
+                                "color": "colorEmbed",
+                                "footer": {
+                                  "text": "Birthday"
+                                },
+                                "timestamp": "",
+                                "thumbnail": {
+                                  "url": "https://gateway.pinata.cloud/ipfs/QmauoA8uruGH4xkde8uLMDQCuzi4QLQ8q4pYmJj1MFZL6N"
+                                }
+                            }
+                        ]
+                    });
                     setIsCreateLoading(false);
                 }
             } catch (err: unknown) {
@@ -158,7 +177,7 @@ const ProfileScreen = () => {
                 </div>
                 <button
                     className='w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:-translate-y-1'
-                    onClick={() => setGameMenu('mother')}
+                    onClick={() => [setGameMenu('mother'), setNicknameProfile(nicknameAttribute)]}
                 >
                     {t('login-button')}
                 </button>

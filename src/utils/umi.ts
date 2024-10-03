@@ -12,6 +12,8 @@ const myKeypair = umi.eddsa.createKeypairFromSecretKey(secret);
 const collectionSigner = createSignerFromKeypair(umi, myKeypair);
 umi.use(signerIdentity(collectionSigner));
 
+export const DelegateSigner = collectionSigner;
+
 export const txConfig: TransactionBuilderSendAndConfirmOptions = {
     send: { skipPreflight: true },
     confirm: { commitment: 'processed' }

@@ -9,9 +9,10 @@ import { RiSpaceShipFill } from 'react-icons/ri';
 import { Tooltip } from 'react-tooltip';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
+import axios from 'axios';
 
 import SpinningLoader from '@/components/(element)/SpinningLoader';
-import { CreatePlanet, FetchOwnPlanet, FetchOtherPlanet } from '@/metaplex/planet';
+import { CreatePlanet, FetchOwnPlanet, FetchOtherPlanet, FetchPlanet } from '@/metaplex/planet';
 
 const DynamicPlanetGenerate = dynamic(() => import('./PlanetGenerate'), { ssr: false });
 
@@ -230,13 +231,41 @@ const OtherPlanetComponent = ({ data, wallet, isLoading, onRefresh, cooldown }: 
 };
 
 const BuyPlanetComponent = ({ wallet, onCheckClick, onBuySuccess }: { wallet: string; onCheckClick: () => void; onBuySuccess: () => void }) => {
+    const { nicknameProfile } = useGameStore();
     const [ isBuying, setIsBuying ] = useState(false);
     const [ newPlanet, setNewPlanet ] = useState('');
-
+    
     const handleBuyPlanet = async () => {
         setIsBuying(true);
         try {
             const response = await CreatePlanet(wallet);
+            const resPlanet: any = await FetchPlanet(response.assetAddress);
+            const name = resPlanet.name;
+            const planetAttributes = resPlanet.attributes.attributeList.reduce((acc: any, attr: any) => {
+                acc[attr.key] = attr.value;
+                return acc;
+            }, {});
+            const { birthday, planet, color, size, surface, cloud, rings, code } = planetAttributes;
+            const colorEmbed = parseInt(color, 16);
+
+            await axios.post('https://discord.com/api/webhooks/1291384347777302539/LKtLyHipdK_Mho7wScLf_zrozMkdmErZbkZF8gj9cfpc5uJSj0S6U-U1t33jxWTKoxEf', {
+                content: null,
+                embeds: [
+                    {
+                        "title": name,
+                        "description": "- Owner: **" + nicknameProfile + "**\n- Planet: **" + planet + "**\n- Color: **#" + color + "**\n- Size: **" + size + "**\n- Surface: **" + surface + "**\n- Cloud: **" + cloud + "**\n- Rings: **" + rings + "**\n- Code: **" + code + "**",
+                        "url": `https://core.metaplex.com/explorer/${response.assetAddress}?env=devnet`,
+                        "color": colorEmbed,
+                        "footer": {
+                          "text": "Birthday"
+                        },
+                        "timestamp": birthday,
+                        "thumbnail": {
+                          "url": "https://gateway.pinata.cloud/ipfs/QmcgpFxeN7Ecfwux8TMCu84jAkhtSNjiJNm8AJuHUwLSLR"
+                        }
+                    }
+                ]
+            });
             setNewPlanet(response.assetAddress);
             onBuySuccess();
         } catch (error) {
@@ -387,10 +416,9 @@ const MotherScreen = () => {
             </motion.h1>
             <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 w-full max-w-4xl'>
                 {menuItems.map((item) => (
-                    <>
+                    <React.Fragment key={item.id}>
                         {item.enable ? (
                             <motion.button
-                                key={item.id}
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 initial={{ opacity: 0, y: 20 }}
@@ -407,17 +435,14 @@ const MotherScreen = () => {
                                 </div>
                             </motion.button>
                         ) : (
-                            <div
-                                key={item.id}
-                                className={'flex justify-center items-center bg-gray-800 rounded-lg shadow-lg overflow-hidden'}
-                            >
+                            <div className={'flex justify-center items-center bg-gray-800 rounded-lg shadow-lg overflow-hidden'}>
                                 <div className='p-4 flex flex-col items-center text-gray-500'>
                                     <h2 className='text-sm font-semibold text-center'>{item.title}</h2>
                                     <h2 className='text-sm font-semibold text-center'>Coming Soon...</h2>
                                 </div>
                             </div>
                         )}
-                    </>
+                    </React.Fragment>
                 ))}
             </div>
             <AnimatePresence mode='wait'>

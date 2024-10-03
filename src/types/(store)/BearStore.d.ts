@@ -23,4 +23,6 @@ export interface GameState {
     setLandingPublic: (landingPublic) => void;
     landingColor: string;
     setLandingColor: (landingColor) => void;
+    nicknameProfile: string | null;
+    setNicknameProfile: (nicknameProfile) => void;
 };

@@ -1,9 +1,10 @@
 import { publicKey, generateSigner } from '@metaplex-foundation/umi';
 import { fetchCollection, create, fetchAssetsByOwner, update, fetchAsset } from '@metaplex-foundation/mpl-core';
-import { umi, txConfig } from '@/utils/umi';
+import { umi, DelegateSigner } from '@/utils/umi';
 
 const addressProfileCollection = publicKey(process.env.ADDRESS_COLLECTION_PROFILE as string);
 const addressUpdated = publicKey(process.env.ADDRESS_SIGNER as string);
+const masterSigner = publicKey(DelegateSigner);
 
 export const CreateProfile = async (owner: string, nickname: string) => {
     const assetSigner = generateSigner(umi);
@@ -38,16 +39,16 @@ export const CreateProfile = async (owner: string, nickname: string) => {
         plugins: [
             {
                 type: 'FreezeDelegate',
-                authority: { type: 'Address', address: addressProfileCollection },
+                authority: { type: 'Address', address: masterSigner },
                 frozen: true
             },
             {
                 type: 'TransferDelegate',
-                authority: { type: 'Address', address: addressProfileCollection },
+                authority: { type: 'Address', address: masterSigner },
             },
             {
                 type: 'UpdateDelegate',
-                authority: { type: 'Address', address: addressProfileCollection },
+                authority: { type: 'Address', address: masterSigner },
                 additionalDelegates: [
                     addressUpdated
                 ]
@@ -63,7 +64,7 @@ export const CreateProfile = async (owner: string, nickname: string) => {
                 ]
             }
         ],
-    }).sendAndConfirm(umi, txConfig);
+    }).sendAndConfirm(umi);
     return { response, assetAddress: assetSigner.publicKey };
 };
 
@@ -90,6 +91,6 @@ export const UpdateProfile = async (owner: string, assetId: any) => {
         asset: asset,
         collection: { publicKey: addressProfileCollection },
         uri: newUri
-    }).sendAndConfirm(umi, txConfig);
+    }).sendAndConfirm(umi);
     return response;
 };

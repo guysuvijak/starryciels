@@ -41,6 +41,8 @@ export const useGameStore = create<GameState>()(
             setLandingPublic: (landingPublic) => set({ landingPublic }),
             landingColor: '',
             setLandingColor: (landingColor) => set({ landingColor }),
+            nicknameProfile: '',
+            setNicknameProfile: (nicknameProfile) => set({ nicknameProfile })
         }),
         {
             name: 'game-storage',

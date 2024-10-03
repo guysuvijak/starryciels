@@ -680,7 +680,7 @@ const doEdgesIntersect = (edge1: number[], edge2: number[]): boolean => {
 };
 
 const GameplayScreen = () => {
-    const { landingColor } = useGameStore();
+    const { landingColor, landingPublic } = useGameStore();
     const [ nodes, setNodes, onNodesChange ] = useNodesState<any>(initialNodes);
     const [ edges, setEdges ] = useEdgesState<any>(initialEdges);
     const [ nodeIdCounter, setNodeIdCounter ] = useState(7);
@@ -1113,87 +1113,95 @@ const GameplayScreen = () => {
     };
 
     return (
-        <NodeContext.Provider value={{ nodes }}>
-            <div style={{ width: '100vw', height: '100vh' }} onMouseMove={onMouseMove}>
-                <Navbar />
-                <div
-                    className='relative min-h-screen overflow-x-hidden bg-black text-white z-10 hide-scrollbar'
-                >
-                    <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundColor: `#${landingColor}`, backgroundImage: 'url(/assets/images/bg-game.webp)', backgroundSize: 'repeat', zIndex: 1 }} />
-                    <div className='absolute z-50 top-0 bottom-0 left-0 right-0'>
-                        <ReactFlow
-                            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-                            snapToGrid={true}
-                            snapGrid={[GRID_SIZE, GRID_SIZE]}
-                            onConnectStart={onConnectStart}
-                            onConnectEnd={onConnectEnd}
-                            nodesDraggable={false}
-                            nodes={[...nodes, ...(temporaryNode ? [temporaryNode] : [])]}
-                            edges={edges}
-                            onNodesChange={onNodesChange}
-                            onNodeDragStop={onNodeDragStop}
-                            onConnect={onConnect}
-                            onEdgeClick={onEdgeClick}
-                            onNodeClick={onNodeClick}
-                            nodeTypes={nodeTypes}
-                            edgeTypes={edgeTypes}
-                            defaultEdgeOptions={{ type: 'custom', animated: true }}
-                            connectionLineType={ConnectionLineType.SmoothStep}
-                            multiSelectionKeyCode={null}
-                            selectionKeyCode={null}
+        <>
+            <NodeContext.Provider value={{ nodes }}>
+                <div style={{ width: '100vw', height: '100vh' }} onMouseMove={onMouseMove}>
+                    {!landingPublic ? (
+                        <div>No Landing Planet</div>
+                    ) : (
+                        <>
+                        <Navbar />
+                        <div
+                            className='relative min-h-screen overflow-x-hidden bg-black text-white z-10 hide-scrollbar'
                         >
-                            <Controls showInteractive={false} position='top-right' />
-                            <Background variant={BackgroundVariant.Dots} gap={10} size={1} />
-                            {isConnecting && (
-                                <DistanceIndicator
-                                sourceX={connectionStart.x}
-                                sourceY={connectionStart.y}
-                                targetX={mousePosition.x}
-                                targetY={mousePosition.y}
+                            <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundColor: `#${landingColor}`, backgroundImage: 'url(/assets/images/bg-game.webp)', backgroundSize: 'repeat', zIndex: 1 }} />
+                            <div className='absolute z-50 top-0 bottom-0 left-0 right-0'>
+                                <ReactFlow
+                                    defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+                                    snapToGrid={true}
+                                    snapGrid={[GRID_SIZE, GRID_SIZE]}
+                                    onConnectStart={onConnectStart}
+                                    onConnectEnd={onConnectEnd}
+                                    nodesDraggable={false}
+                                    nodes={[...nodes, ...(temporaryNode ? [temporaryNode] : [])]}
+                                    edges={edges}
+                                    onNodesChange={onNodesChange}
+                                    onNodeDragStop={onNodeDragStop}
+                                    onConnect={onConnect}
+                                    onEdgeClick={onEdgeClick}
+                                    onNodeClick={onNodeClick}
+                                    nodeTypes={nodeTypes}
+                                    edgeTypes={edgeTypes}
+                                    defaultEdgeOptions={{ type: 'custom', animated: true }}
+                                    connectionLineType={ConnectionLineType.SmoothStep}
+                                    multiSelectionKeyCode={null}
+                                    selectionKeyCode={null}
+                                >
+                                    <Controls showInteractive={false} position='top-right' />
+                                    <Background variant={BackgroundVariant.Dots} gap={10} size={1} />
+                                    {isConnecting && (
+                                        <DistanceIndicator
+                                        sourceX={connectionStart.x}
+                                        sourceY={connectionStart.y}
+                                        targetX={mousePosition.x}
+                                        targetY={mousePosition.y}
+                                        />
+                                    )}
+                                </ReactFlow>
+                                {temporaryNode && (
+                                    <div className='absolute bottom-40 left-1/2 transform -translate-x-1/2 flex space-x-4'>
+                                        <button 
+                                            className='px-4 py-2 bg-red-500 text-white rounded'
+                                            onClick={cancelNodePlacement}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button 
+                                            className={`px-4 py-2 ${isNodeValid ? 'bg-green-500' : 'bg-gray-500'} text-white rounded`}
+                                            onClick={confirmNodePlacement}
+                                            disabled={!isNodeValid}
+                                        >
+                                            Confirm
+                                        </button>
+                                    </div>
+                                )}
+                                <ConfirmModal
+                                    isOpen={edgeModalOpen}
+                                    onClose={handleCancelEdgeDelete}
+                                    onConfirm={handleConfirmEdgeDelete}
+                                    message='คุณต้องการลบการเชื่อมต่อนี้ใช่หรือไม่?'
                                 />
-                            )}
-                        </ReactFlow>
-                        {temporaryNode && (
-                            <div className='absolute bottom-40 left-1/2 transform -translate-x-1/2 flex space-x-4'>
-                                <button 
-                                    className='px-4 py-2 bg-red-500 text-white rounded'
-                                    onClick={cancelNodePlacement}
-                                >
-                                    Cancel
-                                </button>
-                                <button 
-                                    className={`px-4 py-2 ${isNodeValid ? 'bg-green-500' : 'bg-gray-500'} text-white rounded`}
-                                    onClick={confirmNodePlacement}
-                                    disabled={!isNodeValid}
-                                >
-                                    Confirm
-                                </button>
+                                <CustomModal
+                                    isOpen={nodeModalOpen}
+                                    onClose={handleCancelNodeDelete}
+                                    onDelete={handleConfirmNodeDelete}
+                                    onDetail={() => {/* Implement detail action */}}
+                                    node={nodeToDelete}
+                                    canDelete={nodeToDelete && (nodeToDelete.data.nodeType === 'Import') && getConnectedEdgesCount(nodeToDelete.id) === 0}
+                                />
+                                <AlertModal
+                                    isOpen={alertModalOpen}
+                                    onClose={handleAlertModal}
+                                    message={alertMessage}
+                                />
                             </div>
-                        )}
-                        <ConfirmModal
-                            isOpen={edgeModalOpen}
-                            onClose={handleCancelEdgeDelete}
-                            onConfirm={handleConfirmEdgeDelete}
-                            message='คุณต้องการลบการเชื่อมต่อนี้ใช่หรือไม่?'
-                        />
-                        <CustomModal
-                            isOpen={nodeModalOpen}
-                            onClose={handleCancelNodeDelete}
-                            onDelete={handleConfirmNodeDelete}
-                            onDetail={() => {/* Implement detail action */}}
-                            node={nodeToDelete}
-                            canDelete={nodeToDelete && (nodeToDelete.data.nodeType === 'Import') && getConnectedEdgesCount(nodeToDelete.id) === 0}
-                        />
-                        <AlertModal
-                            isOpen={alertModalOpen}
-                            onClose={handleAlertModal}
-                            message={alertMessage}
-                        />
-                    </div>
+                        </div>
+                        <Panel onCreateTemporaryNode={createTemporaryNode} />
+                        </>
+                    )}
                 </div>
-                <Panel onCreateTemporaryNode={createTemporaryNode} />
-            </div>
-        </NodeContext.Provider>
+            </NodeContext.Provider>
+        </>
     );
 };
 
