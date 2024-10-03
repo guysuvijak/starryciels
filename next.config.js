@@ -8,7 +8,7 @@ const cspHeader = `
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' data: https: http:;
     font-src 'self' https://fonts.gstatic.com;
-    object-src 'self';
+    object-src 'self' data:;
     base-uri 'self';
     form-action 'self';
     frame-src 'self' https://discord.com https://youtube.com https://www.youtube.com https://widget.solflare.com https://connect.solflare.com;

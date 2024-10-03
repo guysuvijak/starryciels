@@ -30,7 +30,7 @@ const InGameResource = () => {
                 </motion.p>
                 <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
                     {data.map(({ id, name, image }) => (
-                        <motion.div 
+                        <motion.div
                             key={id}
                             className='flex bg-gradient-to-b to-gray-800 from-gray-700 rounded-lg overflow-hidden items-center'
                             whileHover={{ scale: 1.05 }}

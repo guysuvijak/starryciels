@@ -7,6 +7,10 @@ export interface HeaderTextProps {
     title: string;
 }
 
+export interface ParallaxEffectProps {
+    children: React.ReactNode;
+}
+
 export interface SpinningLoaderProps {
     size?: number;
     speed?: number;

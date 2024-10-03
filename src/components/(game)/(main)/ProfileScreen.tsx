@@ -168,7 +168,7 @@ const ProfileScreen = () => {
     };
 
     return (
-        <div className='flex flex-col items-center w-full h-full bg-slate-200 absolute z-100 p-4'>
+        <div className='flex flex-col items-center w-full h-full bg-slate-200 absolute top-0 left-0 z-100 p-4'>
             <Image 
                 src='/assets/images/profile.webp'
                 width={200}

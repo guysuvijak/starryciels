@@ -1,13 +1,10 @@
-
 import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
-import { FaYoutube, FaDiscord } from 'react-icons/fa';
-import { FaXTwitter } from 'react-icons/fa6';
 import { MdQuestionAnswer } from 'react-icons/md';
 
 import HeaderText from '@/components/(element)/HeaderText';
 
-const CommunityAndFaq = () => {
+const FaqSection = () => {
     const t = useTranslations('Website');
     
     const faqs = [
@@ -19,22 +16,10 @@ const CommunityAndFaq = () => {
         { question: t('cm-q6'), answer: t('cm-a6') },
     ];
 
-    const renderSocialLink = (href: string, Icon: React.ElementType, text: string, hoverColor: string) => (
-        <a href={href} target='_blank' rel='noopener noreferrer' className={`flex text-white ${hoverColor} transition-colors`}>
-            <Icon width={20} height={20} className='w-[20px] h-[20px] mr-1' /> {text}
-        </a>
-    );
-
     return (
         <section className='py-20 px-4'>
             <div className='max-w-4xl mx-auto'>
                 <HeaderText title={t('cm-header')} />
-                <div className='flex justify-center space-x-6 mb-12'>
-                    {renderSocialLink('https://x.com/starryciels', FaXTwitter, 'Twitter', 'hover:text-[#CCCCCC]')}
-                    {renderSocialLink('https://discord.gg/KCzPPgKkUR', FaDiscord, 'Discord', 'hover:text-[#5865F2]')}
-                    {renderSocialLink('https://www.youtube.com/@MeteorVIIx/videos', FaYoutube, 'Youtube', 'hover:text-[#FF0000]')}
-                </div>
-                <h3 className='text-2xl font-bold mb-6'>{t('cm-description')}</h3>
                 <div className='space-y-6'>
                     {faqs.map(({ question, answer }, index) => (
                         <motion.div 
@@ -59,4 +44,4 @@ const CommunityAndFaq = () => {
     );
 };
 
-export default CommunityAndFaq;
+export default FaqSection;
