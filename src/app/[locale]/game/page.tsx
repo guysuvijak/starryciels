@@ -24,7 +24,7 @@ const Game = () => {
     }, [wallet]);
     
     return (
-        <div className='flex h-full w-full justify-center items-center bg-theme-bg-1'>
+        <div className='flex h-full w-full justify-center items-center bg-black'>
             {(isLoading) ? (
                 <div>Loading ...</div>
             ) : (

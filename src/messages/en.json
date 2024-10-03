@@ -30,6 +30,7 @@
         "th": "Thai"
     },
     "Element": {
+        "alert-button": "Go Back",
         "connect-title1": "Connect nodes",
         "connect-title2": "connect Worlds"
     },
@@ -73,6 +74,7 @@
     "Profile": {
         "header-connect": "Connect wallet",
         "description-connect": "You haven't connected wallet",
+        "description-solflare": "(Recommend Solflare Wallet)",
         "header-create": "Create your profile",
         "description-create": "This wallet does not have a profile",
         "header-success": "Welcome Back!",

@@ -30,6 +30,7 @@
         "th": "ภาษาไทย"
     },
     "Element": {
+        "alert-button": "ย้อนกลับ",
         "connect-title1": "เชื่อมต่อโหนด",
         "connect-title2": "เชื่อมต่อโลก"
     },
@@ -73,6 +74,7 @@
     "Profile": {
         "header-connect": "เชื่อมต่อกระเป๋า",
         "description-connect": "คุณยังไม่ได้เชื่อมต่อกระเป๋า",
+        "description-solflare": "(แนะนำเลือก Solflare Wallet)",
         "header-create": "สร้างโปรไฟล์ของคุณ",
         "description-create": "กระเป๋านี้ยังไม่มีโปรไฟล์",
         "header-success": "ยินดีต้อนรับ!",

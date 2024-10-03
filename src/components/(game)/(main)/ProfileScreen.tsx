@@ -8,6 +8,7 @@ import { FaCheck, FaTimes } from 'react-icons/fa';
 import { useGameStore } from '@/stores/useStore';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
+import ParallaxEffect from '@/components/(element)/ParallaxEffect';
 import SpinningLoader from '@/components/(element)/SpinningLoader';
 import { CheckProfile, CreateProfile, UpdateProfile } from '@/metaplex/profile';
 import { decodeAndParseJSON } from '@/utils/decode';
@@ -19,7 +20,7 @@ const WalletMultiButton = dynamic(
 
 const ProfileScreen = () => {
     const t = useTranslations('Profile');
-    const { setGameMenu, setProfilePublic } = useGameStore();
+    const { setGameMenu, setProfilePublic, setLandingPublic } = useGameStore();
     const wallet = useWallet();
     const walletConnect = wallet.connected;
 
@@ -33,6 +34,10 @@ const ProfileScreen = () => {
     const [ error, setError ] = useState('');
 
     const isValid = (isLengthValid && isCharValid) ? true : false;
+
+    useEffect(() => {
+        setLandingPublic(null);
+    }, []);
 
     useEffect(() => {
         setIsLengthValid(nickName.length >= 3 && nickName.length <= 20);
@@ -146,14 +151,13 @@ const ProfileScreen = () => {
         const nicknameAttribute = profileData.decodedUri.attributes.find((attr: { trait_type: string; value: string }) => attr.trait_type === 'nickname').value;
 
         return (
-            <div className='flex flex-col items-center py-2'>
+            <div className='flex flex-col items-center py-2 mt-2'>
                 <div className='flex'>
                     <p>{'nickname:'}</p>
                     <p className='pl-1 font-medium'>{nicknameAttribute}</p>
                 </div>
-                <button 
-                    type='submit'
-                    className={`text-white px-4 py-2 mt-2 rounded bg-blue-500 hover:bg-blue-600`}
+                <button
+                    className='w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:-translate-y-1'
                     onClick={() => setGameMenu('mother')}
                 >
                     {t('login-button')}
@@ -168,36 +172,39 @@ const ProfileScreen = () => {
     };
 
     return (
-        <div className='flex flex-col items-center w-full h-full bg-slate-200 absolute top-0 left-0 z-100 p-4'>
-            <Image 
-                src='/assets/images/profile.webp'
-                width={200}
-                height={200}
-                alt='profile'
-                className='w-[150px] h-[150px] rounded-full bg-[#000000] mb-2' 
-                draggable={false} 
-                priority 
-            />
-            {isLoading ? (
-                <div className='flex items-center'>
-                    <SpinningLoader />
-                    <p className='ml-1'>Loading ...</p>
-                </div>
-            ) : (
-                <>
-                    <h1 className='text-[22px] font-medium'>{(walletConnect && isProfile) ? t('header-success') : walletConnect ? t('header-create') : t('header-connect')}</h1>
-                    <h2 className='text-gray-500 mb-2'>{(walletConnect && isProfile) ? t('description-success') : walletConnect ? t('description-create') : t('description-connect')}</h2>
-                    <WalletMultiButton />
-                    {(walletConnect && isProfile) ? (
-                        <ConnectProfileComponent />
-                    ) : (
-                        <>
-                            {walletConnect && <CreateProfileComponent />}
-                        </>
-                    )}
-                </>
-            )}
-        </div>
+        <ParallaxEffect>
+            <div className='flex flex-col justify-center items-center p-6 m-4 rounded-2xl text-black bg-slate-200 relative z-100'>
+                <Image
+                    src='/assets/images/profile.webp'
+                    width={200}
+                    height={200}
+                    alt='profile'
+                    className='w-[150px] h-[150px] rounded-full bg-[#000000] mb-2' 
+                    draggable={false} 
+                    priority 
+                />
+                {isLoading ? (
+                    <div className='flex items-center'>
+                        <SpinningLoader />
+                        <p className='ml-1'>Loading ...</p>
+                    </div>
+                ) : (
+                    <>
+                        <h1 className='text-[22px] font-medium'>{(walletConnect && isProfile) ? t('header-success') : walletConnect ? t('header-create') : t('header-connect')}</h1>
+                        <h2 className='text-gray-500'>{(walletConnect && isProfile) ? t('description-success') : walletConnect ? t('description-create') : t('description-connect')}</h2>
+                        {!walletConnect && <h2 className='text-gray-500 mb-2'>{t('description-solflare')}</h2>}
+                        <WalletMultiButton />
+                        {(walletConnect && isProfile) ? (
+                            <ConnectProfileComponent />
+                        ) : (
+                            <>
+                                {walletConnect && <CreateProfileComponent />}
+                            </>
+                        )}
+                    </>
+                )}
+            </div>
+        </ParallaxEffect>
     )
 };
 

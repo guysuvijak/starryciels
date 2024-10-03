@@ -10,13 +10,14 @@ import {
 } from '@xyflow/react';
 import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
-import { IoIosAlert } from 'react-icons/io';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { useGameStore } from '@/stores/useStore';
 import { useNodeStore } from './nodeStore';
 
 import Navbar from './Navbar';
 import Panel from './Panel';
+
+import AlertModal from '@/components/(element)/AlertModal';
 
 interface NodeContextType {
     nodes: Node<NodeData>[];
@@ -133,31 +134,6 @@ const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: a
                             Destroy
                         </button>
                     )}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-const AlertModal = ({ isOpen, onClose, message }: any) => {
-    if (!isOpen) return null;
-  
-    return (
-        <div className='fixed inset-0 flex items-center justify-center mx-4'>
-            <div onClick={onClose} className='fixed inset-0 flex bg-black bg-opacity-50' />
-            <div className='bg-white p-4 rounded-lg z-50'>
-                <div className='flex items-center mb-1'>
-                    <IoIosAlert size={22} className='text-theme-alert mr-1' />
-                    <p className='text-lg text-theme-title font-medium'>Alert</p>
-                </div>
-                <span className='text-theme-subtitle'>{message}</span>
-                <div className='flex justify-end space-x-2 mt-2'>
-                    <button
-                        className='px-4 py-2 rounded bg-theme-button hover:bg-theme-button-h'
-                        onClick={onClose}
-                    >
-                        OK
-                    </button>
                 </div>
             </div>
         </div>
@@ -929,7 +905,7 @@ const GameplayScreen = () => {
                 return updatedEdges;
             });
         } else {
-            setAlertMessage('Invalid connection. Check the rules for connecting nodes.');
+            setAlertMessage('Invalid connection.\nCheck the rules for connecting nodes.');
             setAlertModalOpen(true);
         }
     }, [nodes, edges, setEdges, calculateTraffic, setNodes, getConnectedEdgesCount, calculateResourceChange]);

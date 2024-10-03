@@ -282,7 +282,7 @@ const BuyPlanetComponent = ({ wallet, onCheckClick, onBuySuccess }: { wallet: st
 
 const MotherScreen = () => {
     const wallet = useWallet();
-    const { setGameMenu } = useGameStore();
+    const { setGameMenu, landingPublic } = useGameStore();
     const [ menuState, setMenuState ] = useState<string | null>(null);
     const [ ownPlanetData, setOwnPlanetData ] = useState<any>([]);
     const [ otherPlanetData, setOtherPlanetData ] = useState<any>([]);
@@ -366,15 +366,17 @@ const MotherScreen = () => {
     return (
     <div className='flex w-full min-h-screen absolute z-100'>
         <div className='flex flex-col items-center justify-start w-full min-h-screen bg-gradient-to-b from-indigo-900 to-black text-white p-4 overflow-x-hidden relative'>
-            <motion.button
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className='absolute top-4 left-4 bg-gray-300 text-gray-800 p-2 rounded-full hover:bg-gray-400 transition duration-300'
-                onClick={() => setGameMenu('game')}
-            >
-                <FaArrowLeft size={24} />
-            </motion.button>
+            {landingPublic &&
+                <motion.button
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3 }}
+                    className='absolute top-4 left-4 bg-gray-300 text-gray-800 p-2 rounded-full hover:bg-gray-400 transition duration-300'
+                    onClick={() => setGameMenu('game')}
+                >
+                    <FaArrowLeft size={24} />
+                </motion.button>
+            }
             <motion.h1
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
