@@ -12,7 +12,8 @@ import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { useGameStore } from '@/stores/useStore';
-import { useNodeStore } from './nodeStore';
+import { useNodeStore } from '@/stores/nodeStore';
+import useWindowSize from '@/hook/useWindowSize';
 
 import Navbar from './Navbar';
 import Panel from './Panel';
@@ -47,6 +48,8 @@ interface NodeData {
         target?: Position | Position[];
     };
     [key: string]: unknown;
+    isTemporary: boolean;
+    warning: '' | 'Warning';
 }
 
 interface EdgeData {
@@ -65,13 +68,16 @@ const nodeDisplayNames: Record<string, string> = {
 };
 
 const nodeImages = {
+    SpaceshipSpaceship: '/assets/images/spaceship.webp',
     OreExport: '/assets/images/node-ore.webp',
-    OreImport: '/assets/images/ore-station.webp',
     FuelExport: '/assets/images/node-fuel.webp',
-    FuelImport: '/assets/images/fuel-station.webp',
     FoodExport: '/assets/images/node-food.webp',
+    OreImport: '/assets/images/ore-station.webp',
+    FuelImport: '/assets/images/fuel-station.webp',
     FoodImport: '/assets/images/food-station.webp',
-    SpaceshipSpaceship: '/assets/images/spaceship.webp'
+    OreImportWarning: '/assets/images/ore-station-warning.webp',
+    FuelImportWarning: '/assets/images/fuel-station-warning.webp',
+    FoodImportWarning: '/assets/images/food-station-warning.webp',
 };
 
 const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
@@ -100,18 +106,45 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
     );
 };
 
-const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: any) => {
+const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, edges, canDelete }: any) => {
     const { setGameMenu } = useGameStore();
+    const nodeSelect: any = useNodeStore(state => node ? state.nodes[node.id] : null);
+    
+    const iconProps = useMemo(() => {
+        if (!node) return { Icon: '' };
+        let Icon = '';
+        switch(node.data.type) {
+            case 'Ore':
+                Icon = 'ore';
+                break;
+            case 'Fuel':
+                Icon = 'fuel';
+                break;
+            case 'Food':
+                Icon = 'food';
+                break;
+            default:
+                Icon = '';
+                break;
+        }
+        return { Icon };
+    }, [node]);
 
-    const visibleDelete = (node?.data.nodeType === 'Export' || node?.data.nodeType === 'Spaceship') ? false : true;
+    if (!isOpen || !node || !nodeSelect) return null;
 
-    if (!isOpen) return null;
+    const { type, nodeType, supply, maxSupply } = nodeSelect.data;
+    const visibleDelete = nodeType === 'Import';
+    const checkConnectSpaceship = visibleDelete && edges.some((edge: any) => edge.source === nodeSelect.id && edge.target === '0');
   
     return (
         <div className='fixed inset-0 flex items-center justify-center'>
             <div onClick={onClose} className='fixed inset-0 flex bg-black bg-opacity-50' />
             <div className='bg-white p-6 rounded-lg z-50'>
-                <p className='text-lg mb-4 text-theme-title'>{node?.data.displayName} (#{node?.id})</p>
+                <p className='text-lg text-theme-title font-bold'>{node?.data.displayName} (#{node?.id})</p>
+                <p className='flex text-lg text-theme-title'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={24} height={24} className='mx-1 w-[24px] h-[24px]' />} {type}</p>
+                {nodeType !== 'Spaceship' &&
+                    <p className='text-lg mb-4 text-theme-title'>Supply: {supply.toFixed(2)}/{maxSupply}</p>
+                }
                 <div className='flex justify-end space-x-2'>
                     <button
                         className='px-4 py-2 bg-gray-300 rounded hover:bg-gray-400'
@@ -127,11 +160,19 @@ const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: a
                     </button>
                     {visibleDelete && (
                         <button
-                            className='px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600'
+                            className='px-4 py-2 text-white rounded bg-red-500 hover:bg-red-600'
                             onClick={onDelete}
                             disabled={!canDelete}
                         >
                             Destroy
+                        </button>
+                    )}
+                    {checkConnectSpaceship && (
+                        <button
+                            className='px-4 py-2 text-white rounded bg-green-400 hover:bg-green-600'
+                            onClick={() => {}}
+                        >
+                            Send
                         </button>
                     )}
                 </div>
@@ -142,21 +183,20 @@ const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, canDelete }: a
 
 interface FloatingNumberProps {
     value: number;
-    efficiency: number;
 }
 
-const FloatingNumber: React.FC<FloatingNumberProps> = React.memo(({ value, efficiency }) => {
+const FloatingNumber: React.FC<FloatingNumberProps> = React.memo(({ value }) => {
     const [ position, setPosition ] = useState(0);
     const [ displayValue, setDisplayValue ] = useState(0);
     
     const resetAnimation = useCallback(() => {
         setPosition(0);
-        setDisplayValue(Math.max(0, value * (efficiency / 100)));
-    }, [value, efficiency]);
+        setDisplayValue(Math.max(0, value));
+    }, [value]);
   
     useEffect(() => {
         resetAnimation();
-    }, [value, efficiency, resetAnimation]);
+    }, [value, resetAnimation]);
   
     useEffect(() => {
         const moveInterval = setInterval(() => {
@@ -272,33 +312,49 @@ interface CustomNodeProps {
     isConnected: boolean;
     connectedEdgesCount: number;
     efficiency: number;
+    confirmNodeTemporary: any;
+    cancelNodeTemporary: any;
 }
 
-const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, connectedEdgesCount, efficiency }) => {
+const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, connectedEdgesCount, efficiency, confirmNodeTemporary, cancelNodeTemporary }) => {
     const node: any = useNodeStore(state => state.nodes[id]);
     const updateNode = useNodeStore(state => state.updateNode);
     const [ isHovered, setIsHovered ] = useState(false);
     const [ resourceChange, setResourceChange ] = useState(0);
+    const [ isConnectSpaceship, setIsConnectSpaceship ] = useState(false);
+    const edges = useStore(state => state.edges);
 
     useEffect(() => {
         const latestNode: any = useNodeStore.getState().nodes[id];
         if (latestNode && latestNode !== node) {
             updateNode(id, latestNode.data);
         }
-    }, [id, updateNode]);
+    }, [id, updateNode, node.data.isTemporary]);
 
     if (!node) {
         console.error(`Node with id ${id} not found`);
         return null;
     }
     
-    const { label, type, nodeType, displayName, size, handlePositions, supply, maxSupply, isTemporary } = node.data;
+    const { type, nodeType, displayName, size, handlePositions, supply, maxSupply, isTemporary, warning } = node.data;
   
+    const memoizedIsConnectSpaceship = useMemo(() => {
+        return edges.some(edge => edge.source === id && edge.target === '0');
+    }, [edges, id]);
+
+    useEffect(() => {
+        setIsConnectSpaceship(memoizedIsConnectSpaceship);
+    }, [memoizedIsConnectSpaceship]);
+
     useEffect(() => {
         if (isConnected) {
             const interval = setInterval(() => {
                 if(nodeType === 'Import') {
-                    const change = connectedEdgesCount * (efficiency / 100);
+                    const spaceshipValue = isConnectSpaceship ? 1 : 0;
+                    const change = (connectedEdgesCount - spaceshipValue) * (efficiency / 100);
+
+                    if (connectedEdgesCount === 1 && isConnectSpaceship) return;
+
                     setResourceChange(change);
                     updateNode(id, {
                         data: {
@@ -319,7 +375,7 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
             }, 1000);
             return () => clearInterval(interval);
         }
-      }, [id, nodeType, maxSupply, supply, isConnected, connectedEdgesCount, efficiency, updateNode]);
+    }, [id, nodeType, maxSupply, supply, isConnected, connectedEdgesCount, efficiency, updateNode, isConnectSpaceship]);
   
     const nodeSize = useMemo(() => {
       const sizes: any = { small: 40, medium: 60, large: 80 };
@@ -349,7 +405,9 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
       <div>
         <p><strong>{displayName} (#{id})</strong></p>
         <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={18} height={18} className='mx-1 w-[18px] h-[18px]' />} {type}</p>
-        <p>Supply: {supply.toFixed(2)}/{maxSupply}</p>
+        {nodeType !== 'Spaceship' &&
+            <p>Supply: {supply.toFixed(2)}/{maxSupply}</p>
+        }
       </div>
     ), [id, nodeType, displayName, iconProps.Icon, type, supply, maxSupply, node.connectedNodes]);
   
@@ -426,7 +484,7 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
                 onMouseLeave={() => setIsHovered(false)}
             >
                 <Image
-                    src={(node.imagePath || nodeImages[`${type}${nodeType}` as keyof typeof nodeImages]) as string}
+                    src={(nodeImages[`${type}${nodeType}${warning}` as keyof typeof nodeImages]) as string}
                     alt={`${type} ${nodeType}`}
                     width={200}
                     height={200}
@@ -434,19 +492,28 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
                     priority
                 />
             </div>
-            <p className='absolute text-[20px] text-white'>{isTemporary ? 'yes' : 'no'}</p>
-            {isTemporary &&
+            {isTemporary && (
                 <div className='flex absolute z-10 items-center justify-center'>
-                    <button className='px-2 py-1 mr-1 bg-[#dd1111] rounded-sm'><FaTimesCircle size={14} /></button>
-                    <button className='px-2 py-1 ml-1 bg-[#16cf35] rounded-sm'><FaCheckCircle size={14} /></button>
+                    <button 
+                        className='px-2 py-1 ml-1 rounded-sm bg-red-500'
+                        onClick={cancelNodeTemporary}
+                    >
+                        <FaTimesCircle size={14} />
+                    </button>
+                    <button
+                        className={`px-2 py-1 ml-1 rounded-sm ${warning === '' ? 'bg-green-500' : 'bg-gray-500'}`}
+                        onClick={confirmNodeTemporary}
+                        disabled={warning === 'Warning'}
+                    >
+                        <FaCheckCircle size={14} />
+                    </button>
                 </div>
-            }
+            )}
             <Tooltip id={`tooltip-${id}`} render={() => tooltipContent} />
             {isConnected && supply < maxSupply && (
                 <FloatingNumber
-                    key={`${resourceChange}-${efficiency}`} 
-                    value={resourceChange} 
-                    efficiency={efficiency} 
+                    key={`${resourceChange}-${efficiency}`}
+                    value={resourceChange}
                 />
             )}
         </>
@@ -458,17 +525,19 @@ const initialNodes: Node<NodeData>[] = [
         id: '0',
         type: 'custom',
         data: { 
-            label: 'Spaceship', 
-            type: 'Spaceship', 
-            nodeType: 'Spaceship', 
-            id: '0', 
-            displayName: 'Mother Ship', 
+            label: 'Spaceship',
+            type: 'Spaceship',
+            nodeType: 'Spaceship',
+            id: '0',
+            displayName: 'Mother Ship',
             size: 'large',
             supply: 0,
-            maxSupply: 5000,
+            maxSupply: 0,
             handlePositions: {
                 target: [Position.Left, Position.Right, Position.Top, Position.Bottom]
-            }
+            },
+            isTemporary: false,
+            warning: ''
         },
         position: { x: 0, y: 0 },
     },
@@ -486,7 +555,9 @@ const initialNodes: Node<NodeData>[] = [
             maxSupply: 1000,
             handlePositions: {
                 source: Position.Right
-            }
+            },
+            isTemporary: false,
+            warning: ''
         },
         position: { x: -100, y: 100 },
     },
@@ -505,7 +576,9 @@ const initialNodes: Node<NodeData>[] = [
             handlePositions: {
                 target: Position.Left,
                 source: Position.Right
-            }
+            },
+            isTemporary: false,
+            warning: ''
         },
         position: { x: 300, y: 100 },
     },
@@ -523,7 +596,9 @@ const initialNodes: Node<NodeData>[] = [
             maxSupply: 1000,
             handlePositions: {
                 source: Position.Right
-            }
+            },
+            isTemporary: false,
+            warning: ''
         },
         position: { x: -100, y: 200 },
     },
@@ -542,7 +617,9 @@ const initialNodes: Node<NodeData>[] = [
             handlePositions: {
                 target: Position.Left,
                 source: Position.Right
-            }
+            },
+            isTemporary: false,
+            warning: ''
         },
         position: { x: 300, y: 200 },
     },
@@ -560,7 +637,9 @@ const initialNodes: Node<NodeData>[] = [
             maxSupply: 1000,
             handlePositions: {
                 source: Position.Right
-            }
+            },
+            isTemporary: false,
+            warning: ''
         },
         position: { x: -100, y: 400 },
     },
@@ -680,6 +759,7 @@ const doEdgesIntersect = (edge1: number[], edge2: number[]): boolean => {
 };
 
 const GameplayScreen = () => {
+    const { widowWidth, windowHeight } = useWindowSize();
     const { landingColor, landingPublic } = useGameStore();
     const [ nodes, setNodes, onNodesChange ] = useNodesState<any>(initialNodes);
     const [ edges, setEdges ] = useEdgesState<any>(initialEdges);
@@ -725,8 +805,8 @@ const GameplayScreen = () => {
         return edges.filter(edge => edge.target === nodeId || edge.source === nodeId).length;
     }, [edges]);
 
-    const calculateEfficiency = useCallback((nodeId: string): number => {
-        const connectedEdges = edges.filter(edge => edge.target === nodeId);
+    const calculateEfficiency = useCallback((nodeId: string, nodeType: string): number => {
+        const connectedEdges = nodeType === 'Import' ? edges.filter(edge => edge.target === nodeId) : edges.filter(edge => edge.source === nodeId);
         if (connectedEdges.length === 0) return 100;
         const avgTrafficLevel = connectedEdges.reduce((sum, edge) => sum + (edge.data?.trafficLevel || 0), 0) / connectedEdges.length;
         return Math.max(0, 100 - avgTrafficLevel * 20);
@@ -779,7 +859,7 @@ const GameplayScreen = () => {
         const connectedEdgesCount = getConnectedEdgesCount(nodeId);
         if (connectedEdgesCount === 0) return 0;
     
-        const efficiency = calculateEfficiency(nodeId);
+        const efficiency = calculateEfficiency(nodeId, nodeType);
         const connectedEdges = edges.filter(e => nodeType === 'Export' ? e.source === nodeId : e.target === nodeId);
         
         let totalTraffic = connectedEdges.reduce((sum, edge) => sum + (edge.data?.trafficLevel || 0), 0);
@@ -1003,6 +1083,28 @@ const GameplayScreen = () => {
     }, [nodes, setEdges, calculateTraffic]);
     
     const updateNode = useNodeStore((state) => state.updateNode);
+
+    const confirmNodePlacement = () => {
+        if (temporaryNode && isNodeValid) {
+            const confirmedNodeData = {
+                ...temporaryNode.data,
+                isTemporary: false
+            };
+            
+            const confirmedNode = {
+                ...temporaryNode,
+                data: confirmedNodeData,
+                draggable: false
+            };
+            setNodes(prevNodes => [...prevNodes, confirmedNode]);
+            useNodeStore.getState().updateNode(confirmedNode.id, confirmedNode);
+            setTemporaryNode(null);
+        }
+    };
+
+    const cancelNodePlacement = () => {
+        setTemporaryNode(null);
+    };
     
     const nodeTypes = useMemo(() => ({
         custom: (props: any) => (
@@ -1010,7 +1112,9 @@ const GameplayScreen = () => {
                 {...props}
                 isConnected={getConnectedEdgesCount(props.id) > 0}
                 connectedEdgesCount={getConnectedEdgesCount(props.id)}
-                efficiency={calculateEfficiency(props.id)}
+                efficiency={calculateEfficiency(props.id, props.nodeType)}
+                confirmNodeTemporary={confirmNodePlacement}
+                cancelNodeTemporary={cancelNodePlacement}
             />
         )
     }), [getConnectedEdgesCount, calculateEfficiency]);
@@ -1045,7 +1149,8 @@ const GameplayScreen = () => {
                     target: Position.Left
                 },
                 connectedNodes: [],
-                isTemporary: true
+                isTemporary: true,
+                warning: ''
             },
             position: { x: centerX, y: centerY },
             draggable: true,
@@ -1060,8 +1165,7 @@ const GameplayScreen = () => {
         const isValid = !checkNodeCollision({ ...temporaryNode!, position }, nodes);
         setIsNodeValid(isValid);
         if (temporaryNode) {
-            const baseImagePath = nodeImages[`${temporaryNode.data.type}${temporaryNode.data.nodeType}` as keyof typeof nodeImages];
-            const imagePath = isValid ? baseImagePath : baseImagePath.replace('.webp', '-warning.webp');
+            const warning = isValid ? '' : 'Warning';
             
             setTemporaryNode(prevNode => {
                 if (!prevNode) return null;
@@ -1069,14 +1173,17 @@ const GameplayScreen = () => {
                     ...prevNode,
                     data: {
                         ...prevNode.data,
-                        imagePath
+                        warning
                     }
                 };
             });
             
             useNodeStore.getState().updateNode(temporaryNode.id, {
-                ...temporaryNode.data,
-                imagePath
+                ...temporaryNode,
+                data: {
+                    ...temporaryNode.data,
+                    warning
+                }
             });
         }
     };
@@ -1087,29 +1194,6 @@ const GameplayScreen = () => {
             setTemporaryNode(prevNode => prevNode ? { ...prevNode, position: updatedPosition } : null);
             checkNodeValidity(updatedPosition);
         }
-    };
-
-    const confirmNodePlacement = () => {
-        if (temporaryNode && isNodeValid) {
-            const confirmedNodeData = {
-                ...temporaryNode.data,
-                isTemporary: false,
-                imagePath: nodeImages[`${temporaryNode.data.type}${temporaryNode.data.nodeType}` as keyof typeof nodeImages]
-            };
-    
-            const confirmedNode = {
-                ...temporaryNode,
-                data: confirmedNodeData,
-                draggable: false
-            };
-            setNodes(prevNodes => [...prevNodes, confirmedNode]);
-            useNodeStore.getState().updateNode(confirmedNode.id, confirmedNodeData);
-            setTemporaryNode(null);
-        }
-      };
-
-    const cancelNodePlacement = () => {
-        setTemporaryNode(null);
     };
 
     return (
@@ -1127,7 +1211,7 @@ const GameplayScreen = () => {
                             <motion.div className='fixed top-0 left-0 w-full h-full' style={{ backgroundColor: `#${landingColor}`, backgroundImage: 'url(/assets/images/bg-game.webp)', backgroundSize: 'repeat', zIndex: 1 }} />
                             <div className='absolute z-50 top-0 bottom-0 left-0 right-0'>
                                 <ReactFlow
-                                    defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+                                    defaultViewport={{ x: (widowWidth / 2) - 40, y: (windowHeight / 2) - 40, zoom: 1 }}
                                     snapToGrid={true}
                                     snapGrid={[GRID_SIZE, GRID_SIZE]}
                                     onConnectStart={onConnectStart}
@@ -1158,23 +1242,6 @@ const GameplayScreen = () => {
                                         />
                                     )}
                                 </ReactFlow>
-                                {temporaryNode && (
-                                    <div className='absolute bottom-40 left-1/2 transform -translate-x-1/2 flex space-x-4'>
-                                        <button 
-                                            className='px-4 py-2 bg-red-500 text-white rounded'
-                                            onClick={cancelNodePlacement}
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button 
-                                            className={`px-4 py-2 ${isNodeValid ? 'bg-green-500' : 'bg-gray-500'} text-white rounded`}
-                                            onClick={confirmNodePlacement}
-                                            disabled={!isNodeValid}
-                                        >
-                                            Confirm
-                                        </button>
-                                    </div>
-                                )}
                                 <ConfirmModal
                                     isOpen={edgeModalOpen}
                                     onClose={handleCancelEdgeDelete}
@@ -1187,6 +1254,7 @@ const GameplayScreen = () => {
                                     onDelete={handleConfirmNodeDelete}
                                     onDetail={() => {/* Implement detail action */}}
                                     node={nodeToDelete}
+                                    edges={edges}
                                     canDelete={nodeToDelete && (nodeToDelete.data.nodeType === 'Import') && getConnectedEdgesCount(nodeToDelete.id) === 0}
                                 />
                                 <AlertModal

@@ -8,9 +8,9 @@ const SpinningLoader = ({size, speed}: SpinningLoaderProps) => {
         <motion.div
             animate={{ rotate: 360 }}
             transition={{
-            duration: speed ? speed : 1,
-            repeat: Infinity,
-            ease: 'linear'
+                duration: speed ? speed : 1,
+                repeat: Infinity,
+                ease: 'linear'
             }}
         >
             <LuLoader2 size={size ? size : 20} className='text-white' />

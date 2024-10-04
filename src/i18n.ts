@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { getRequestConfig } from 'next-intl/server';
-import { locales, type Locale } from '@/lib/locales';
+import { locales, type Locale } from '@/utils/locales';
 import type { AbstractIntlMessages } from 'next-intl';
 
 const messageImports = {
