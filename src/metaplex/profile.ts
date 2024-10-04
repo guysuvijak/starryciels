@@ -1,15 +1,11 @@
 import { publicKey, generateSigner } from '@metaplex-foundation/umi';
 import { fetchCollection, create, fetchAssetsByOwner, update, fetchAsset } from '@metaplex-foundation/mpl-core';
-import { umi, DelegateSigner } from '@/utils/umi';
-
-const addressProfileCollection = publicKey(process.env.ADDRESS_COLLECTION_PROFILE as string);
-const addressUpdated = publicKey(process.env.ADDRESS_SIGNER as string);
-const masterSigner = publicKey(DelegateSigner);
+import { umi, addressCollectionProfile, addressSigner } from '@/utils/umi';
 
 export const CreateProfile = async (owner: string, nickname: string) => {
     const assetSigner = generateSigner(umi);
 
-    const collection = await fetchCollection(umi, addressProfileCollection);
+    const collection = await fetchCollection(umi, addressCollectionProfile);
     const currentDate = new Date().toISOString();
 
     const metadataName = `StarryCiels Profile #${collection.numMinted}`;
@@ -39,18 +35,18 @@ export const CreateProfile = async (owner: string, nickname: string) => {
         plugins: [
             {
                 type: 'FreezeDelegate',
-                authority: { type: 'Address', address: masterSigner },
+                authority: { type: 'Address', address: addressSigner },
                 frozen: true
             },
             {
                 type: 'TransferDelegate',
-                authority: { type: 'Address', address: masterSigner },
+                authority: { type: 'Address', address: addressSigner },
             },
             {
                 type: 'UpdateDelegate',
-                authority: { type: 'Address', address: masterSigner },
+                authority: { type: 'Address', address: addressSigner },
                 additionalDelegates: [
-                    addressUpdated
+                    addressSigner
                 ]
             },
             {
@@ -73,7 +69,7 @@ export const CheckProfile = async (owner: string) => {
         skipDerivePlugins: false,
     })
     const collectionAssets = assetsByOwner.filter((asset: any) => 
-        asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressProfileCollection.toString()
+        asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressCollectionProfile.toString()
     );
     return collectionAssets;
 };
@@ -89,7 +85,7 @@ export const UpdateProfile = async (owner: string, assetId: any) => {
     
     const response = await update(umi, {
         asset: asset,
-        collection: { publicKey: addressProfileCollection },
+        collection: { publicKey: addressCollectionProfile },
         uri: newUri
     }).sendAndConfirm(umi);
     return response;

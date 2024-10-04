@@ -89,15 +89,17 @@ const ProfileScreen = () => {
                         content: null,
                         embeds: [
                             {
-                                "title": "name",
-                                "description": "- Owner: **" + "nicknameProfile",
+                                "title": nickName,
                                 "url": `https://core.metaplex.com/explorer/${response.assetAddress}?env=devnet`,
-                                "color": "colorEmbed",
+                                "color": 5898140,
+                                "author": {
+                                    "name": "New Player Create Profile"
+                                },
                                 "footer": {
                                   "text": "Birthday"
                                 },
-                                "timestamp": "",
-                                "thumbnail": {
+                                "timestamp": new Date(),
+                                "image": {
                                   "url": "https://gateway.pinata.cloud/ipfs/QmauoA8uruGH4xkde8uLMDQCuzi4QLQ8q4pYmJj1MFZL6N"
                                 }
                             }
@@ -116,7 +118,7 @@ const ProfileScreen = () => {
         return (
             <div className={`flex items-center ${state ? 'text-green-500' : 'text-red-500'}`}>
                 {state ? <FaCheck /> : <FaTimes />}
-                <p className='pl-1'>{title}</p>
+                <p className='pl-1 text-[12px] sm:text-sm'>{title}</p>
             </div>
         )
     };
@@ -135,9 +137,9 @@ const ProfileScreen = () => {
         }, []);
         
         return (
-            <form onSubmit={handleSubmit} className='flex flex-col items-center mt-2'>
+            <form onSubmit={handleSubmit} className='flex flex-col items-center bg-white p-4 sm:p-6 rounded-lg shadow-md'>
                 <div className='flex self-start'>
-                    <p className='flex font-medium self-start mb-1'>{t('nickname')}</p>
+                    <p className='font-medium mb-1'>{t('nickname')}</p>
                     <p className='pl-1 text-red-500'>{'*'}</p>
                 </div>
                 <input
@@ -149,14 +151,15 @@ const ProfileScreen = () => {
                     maxLength={20}
                     placeholder={t('nickname-p')}
                     className={`w-full p-2 mb-2 rounded shadow border-1 ${!isValid && 'border-red-500 text-red-500 shadow-red-500'}`}
+                    disabled={isCreateLoading}
                 />
-                <div className='w-full mb-2'>
+                <div className='w-full mb-4'>
                     <RequireComponent title={t('require-1')} state={isLengthValid} />
                     <RequireComponent title={t('require-2')} state={isCharValid} />
                 </div>
                 <button 
                     type='submit'
-                    className={`text-white px-4 py-2 rounded ${isValid ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-500'}`}
+                    className={`text-white px-4 py-2 rounded ${isValid ? 'bg-black hover:bg-gray-800' : 'bg-gray-500'}`}
                     disabled={!isValid || isCreateLoading}
                 >
                     {isCreateLoading ? <SpinningLoader /> : t('create-button')}
@@ -168,7 +171,6 @@ const ProfileScreen = () => {
 
     const ConnectProfileComponent = () => {
         const nicknameAttribute = profileData.decodedUri.attributes.find((attr: { trait_type: string; value: string }) => attr.trait_type === 'nickname').value;
-
         return (
             <div className='flex flex-col items-center py-2 mt-2'>
                 <div className='flex'>
@@ -192,7 +194,7 @@ const ProfileScreen = () => {
 
     return (
         <ParallaxEffect>
-            <div className='flex flex-col justify-center items-center p-6 m-4 rounded-2xl text-black bg-slate-200 relative z-100'>
+            <div className='flex flex-col w-screen h-screen sm:w-full sm:h-full justify-center items-center p-6 sm:m-4 sm:rounded-2xl text-black bg-gradient-to-tr to-slate-100 from-slate-300 relative z-100'>
                 <Image
                     src='/assets/images/profile.webp'
                     width={200}
@@ -209,10 +211,12 @@ const ProfileScreen = () => {
                     </div>
                 ) : (
                     <>
-                        <h1 className='text-[22px] font-medium'>{(walletConnect && isProfile) ? t('header-success') : walletConnect ? t('header-create') : t('header-connect')}</h1>
-                        <h2 className='text-gray-500'>{(walletConnect && isProfile) ? t('description-success') : walletConnect ? t('description-create') : t('description-connect')}</h2>
-                        {!walletConnect && <h2 className='text-gray-500 mb-2'>{t('description-solflare')}</h2>}
                         <WalletMultiButton />
+                        <div className='flex flex-col items-center my-2'>
+                            <h1 className='text-[22px] font-medium'>{(walletConnect && isProfile) ? t('header-success') : walletConnect ? t('header-create') : t('header-connect')}</h1>
+                            <h2 className='text-gray-500'>{(walletConnect && isProfile) ? t('description-success') : walletConnect ? t('description-create') : t('description-connect')}</h2>
+                        </div>
+                        {!walletConnect && <h2 className='text-gray-500 mb-2'>{t('description-solflare')}</h2>}
                         {(walletConnect && isProfile) ? (
                             <ConnectProfileComponent />
                         ) : (

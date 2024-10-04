@@ -1,12 +1,6 @@
-import { publicKey, generateSigner, transactionBuilder, sol } from '@metaplex-foundation/umi';
+import { publicKey, generateSigner, transactionBuilder } from '@metaplex-foundation/umi';
 import { fetchCollection, create, fetchAssetsByOwner, update, fetchAsset, fetchAssetsByCollection } from '@metaplex-foundation/mpl-core';
-import { transferSol } from '@metaplex-foundation/mpl-toolbox';
-import { umi, DelegateSigner } from '@/utils/umi';
-
-const creator1 = publicKey('HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH');
-const addressPlanetCollection = publicKey(process.env.ADDRESS_COLLECTION_PLANET as string);
-const addressUpdated = publicKey(process.env.ADDRESS_SIGNER as string);
-const masterSigner = publicKey(DelegateSigner);
+import { umi, addressCollectionPlanet, addressSigner } from '@/utils/umi';
 
 const randomNickname = (no: number) => {
     const letters = Array.from({ length: 3 }, () => String.fromCharCode(65 + Math.floor(Math.random() * 26))).join('');
@@ -63,12 +57,19 @@ const randomPlanetAttributes = (no: number) => {
 };
 
 export const CreatePlanet = async (owner: string) => {
+    console.log('step 1: start ...')
     const assetSigner = generateSigner(umi);
+    console.log('step 2 get assetSigner: ', assetSigner)
     const ownerPublicKey = publicKey(owner);
+    console.log('step 3 get ownerPublicKey: ', ownerPublicKey)
 
-    const collection = await fetchCollection(umi, addressPlanetCollection);
+    const collection = await fetchCollection(umi, addressCollectionPlanet);
+    console.log('step 4 get collection: ', collection)
     const metadataName = `StarryCiels Planet #${collection.numMinted}`;
+    console.log('step 5 get metadataName: ', metadataName)
     const { attributes, attributesList } = randomPlanetAttributes(collection.numMinted);
+    console.log('step 6.1 get attributes: ', attributes)
+    console.log('step 6.2 get attributesList: ', attributesList)
 
     const metadata = {
         'name': metadataName,
@@ -90,11 +91,11 @@ export const CreatePlanet = async (owner: string) => {
             plugins: [
                 {
                     type: 'TransferDelegate',
-                    authority: { type: 'Address', address: masterSigner },
+                    authority: { type: 'Address', address: addressSigner },
                 },
                 {
                     type: 'UpdateDelegate',
-                    authority: { type: 'Address', address: masterSigner },
+                    authority: { type: 'Address', address: addressSigner },
                     additionalDelegates: []
                 },
                 {
@@ -105,7 +106,10 @@ export const CreatePlanet = async (owner: string) => {
         }));
 
     try {
+        
+        console.log('step 7 get start tx')
         const response = await tx.sendAndConfirm(umi);
+        console.log('step 8 get response:', response)
         return { response, assetAddress: assetSigner.publicKey };
     } catch (error) {
         console.error('Failed to create planet:', error);
@@ -123,13 +127,13 @@ export const FetchOwnPlanet = async (owner: string) => {
         skipDerivePlugins: false
     })
     const collectionAssets = assetsByOwner.filter((asset: any) => 
-        asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressPlanetCollection.toString()
+        asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressCollectionPlanet.toString()
     );
     return collectionAssets;
 };
 
 export const FetchOtherPlanet = async () => {
-    const assetsByCollection = await fetchAssetsByCollection(umi, addressPlanetCollection, {
+    const assetsByCollection = await fetchAssetsByCollection(umi, addressCollectionPlanet, {
         skipDerivePlugins: false
     });
     return assetsByCollection;

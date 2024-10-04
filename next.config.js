@@ -93,9 +93,11 @@ const nextConfig = {
         DATABASE_URL: process.env.DATABASE_URL,
         NETWORK_RPC: process.env.NETWORK_RPC,
         RPC_URL: process.env.RPC_URL,
+        ADDRESS_CREATOR: process.env.ADDRESS_CREATOR,
         ADDRESS_COLLECTION_PLANET: process.env.ADDRESS_COLLECTION_PLANET,
         ADDRESS_COLLECTION_PROFILE: process.env.ADDRESS_COLLECTION_PROFILE,
-        ADDRESS_SIGNER: process.env.ADDRESS_SIGNER
+        ADDRESS_SIGNER: process.env.ADDRESS_SIGNER,
+        SECRET_KEY_BASE64: process.env.SECRET_KEY_BASE64
     }
 };
 

@@ -338,7 +338,15 @@ const MotherScreen = () => {
         return data.sort((a: any, b: any) => {
             const nameA = a.name.toLowerCase();
             const nameB = b.name.toLowerCase();
-            return nameA.localeCompare(nameB);
+            const [ textA, numberA ] = nameA.split('#');
+            const [ textB, numberB ] = nameB.split('#');
+            const textComparison = textA.localeCompare(textB);
+            
+            if (textComparison === 0) {
+                return parseInt(numberB) - parseInt(numberA);
+            }
+            
+            return textComparison;
         });
     };
 
