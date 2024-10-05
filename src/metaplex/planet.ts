@@ -57,23 +57,17 @@ const randomPlanetAttributes = (no: number) => {
 };
 
 export const CreatePlanet = async (owner: string) => {
-    console.log('step 1: start ...')
+    const planetPinata = process.env.PLANET_PINATA as string;
     const assetSigner = generateSigner(umi);
-    console.log('step 2 get assetSigner: ', assetSigner)
     const ownerPublicKey = publicKey(owner);
-    console.log('step 3 get ownerPublicKey: ', ownerPublicKey)
 
     const collection = await fetchCollection(umi, addressCollectionPlanet);
-    console.log('step 4 get collection: ', collection)
     const metadataName = `StarryCiels Planet #${collection.numMinted}`;
-    console.log('step 5 get metadataName: ', metadataName)
     const { attributes, attributesList } = randomPlanetAttributes(collection.numMinted);
-    console.log('step 6.1 get attributes: ', attributes)
-    console.log('step 6.2 get attributesList: ', attributesList)
 
     const metadata = {
         'name': metadataName,
-        'image': 'https://gateway.pinata.cloud/ipfs/QmcgpFxeN7Ecfwux8TMCu84jAkhtSNjiJNm8AJuHUwLSLR',
+        'image': planetPinata,
         'external_url': 'https://starryciels.vercel.app',
         'attributes': attributes
     };
@@ -104,22 +98,24 @@ export const CreatePlanet = async (owner: string) => {
                 }
             ],
         }));
-
     try {
-        
-        console.log('step 7 get start tx')
-        const response = await tx.sendAndConfirm(umi);
-        console.log('step 8 get response:', response)
+        const response = await tx.sendAndConfirm(umi, {confirm: { commitment: 'finalized' }});
         return { response, assetAddress: assetSigner.publicKey };
     } catch (error) {
-        console.error('Failed to create planet:', error);
-        throw new Error('Failed to create planet. Transaction failed.');
+        throw new Error('Failed to create planet. Transaction failed.', error as Error);
     }
 };
 
-export const FetchPlanet = async (assetId: any) => {
-    const asset = await fetchAsset(umi, assetId);
-    return asset;
+export const FetchPlanet = async (assetId: string, maxRetries = 10) => {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const asset = await fetchAsset(umi, publicKey(assetId));
+            return asset;
+        } catch (error) {
+            if (i === maxRetries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+    }
 };
 
 export const FetchOwnPlanet = async (owner: string) => {

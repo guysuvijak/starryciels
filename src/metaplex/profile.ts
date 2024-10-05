@@ -1,8 +1,9 @@
 import { publicKey, generateSigner } from '@metaplex-foundation/umi';
-import { fetchCollection, create, fetchAssetsByOwner, update, fetchAsset } from '@metaplex-foundation/mpl-core';
-import { umi, addressCollectionProfile, addressSigner } from '@/utils/umi';
+import { fetchCollection, create, fetchAssetsByOwner, updatePlugin, fetchAsset, thawAsset } from '@metaplex-foundation/mpl-core';
+import { umi, addressCollectionProfile, addressSigner, DelegateSigner } from '@/utils/umi';
 
 export const CreateProfile = async (owner: string, nickname: string) => {
+    const profilePinata = process.env.PROFILE_PINATA as string;
     const assetSigner = generateSigner(umi);
 
     const collection = await fetchCollection(umi, addressCollectionProfile);
@@ -18,7 +19,7 @@ export const CreateProfile = async (owner: string, nickname: string) => {
         'name': metadataName,
         'symbol': 'STCTPF',
         'description': 'StarryCiels Player Profile',
-        'image': 'https://gateway.pinata.cloud/ipfs/QmauoA8uruGH4xkde8uLMDQCuzi4QLQ8q4pYmJj1MFZL6N',
+        'image': profilePinata,
         'external_url': 'https://starryciels.vercel.app',
         'attributes': attributes
     };
@@ -60,33 +61,54 @@ export const CreateProfile = async (owner: string, nickname: string) => {
                 ]
             }
         ],
-    }).sendAndConfirm(umi);
+    }).sendAndConfirm(umi, {confirm: { commitment: 'finalized' }});
     return { response, assetAddress: assetSigner.publicKey };
 };
 
-export const CheckProfile = async (owner: string) => {
-    const assetsByOwner = await fetchAssetsByOwner(umi, owner, {
-        skipDerivePlugins: false,
-    })
-    const collectionAssets = assetsByOwner.filter((asset: any) => 
-        asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressCollectionProfile.toString()
-    );
-    return collectionAssets;
+export const CheckProfile = async (owner: string, maxRetries = 10) => {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const assetsByOwner = await fetchAssetsByOwner(umi, owner, {
+                skipDerivePlugins: false,
+            });
+            const collectionAssets = assetsByOwner.filter((asset: any) =>
+                asset.updateAuthority.type === 'Collection' && asset.updateAuthority.address.toString() === addressCollectionProfile.toString()
+            );
+            return collectionAssets;
+        } catch (error) {
+            if (i === maxRetries - 1) throw error;
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+    }
 };
 
-export const UpdateProfile = async (owner: string, assetId: any) => {
-    const asset = await fetchAsset(umi, assetId);
-    const base64Data = asset.uri.split(',')[1];
-    const jsonString = atob(base64Data);
-    const metadata = JSON.parse(jsonString);
-    const updatedJsonString = JSON.stringify(metadata);
-    const updatedBase64 = btoa(updatedJsonString);
-    const newUri = `data:application/json;base64,${updatedBase64}`;
-    
-    const response = await update(umi, {
-        asset: asset,
-        collection: { publicKey: addressCollectionProfile },
-        uri: newUri
+export const UpdateProfile = async (owner: string, assetId: string) => {
+    const response = await updatePlugin(umi, {
+        asset: publicKey(assetId),
+        collection: publicKey('3DUrFrZyz6XaRriG4NzkH41eK9HHP2G4w2ksg2omwAH3'),
+        plugin: {
+            type: 'Attributes',
+            attributeList: [
+                { key: 'birthday', value: '2024-10-05T06:03:55.524Z' },
+                { key: 'nickname', value: 'MintPlease' },
+                { key: 'ore', value: '10' },
+                { key: 'fuel', value: '20' },
+                { key: 'food', value: '40' },
+            ]
+        }
+
+    }).sendAndConfirm(umi);
+    return response;
+};
+
+export const ThawProfile = async (owner: string, assetId: string) => {
+    const assetAccount = await fetchAsset(umi, assetId)
+    const collection = await fetchCollection(umi, addressCollectionProfile);
+    const response = await thawAsset(umi, {
+        asset: assetAccount,
+        collection: collection,
+        delegate: DelegateSigner
+
     }).sendAndConfirm(umi);
     return response;
 };

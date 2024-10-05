@@ -1,11 +1,12 @@
 'use client'
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { SolflareWalletAdapter, TorusWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider } from '@solana/wallet-adapter-react';  
 import { clusterApiUrl } from '@solana/web3.js';
 
+import { useThemeStore } from '@/stores/useStore';
 import { Web3ProviderProps } from '@/types/(global)/Global';
 
 const networkRPC = process.env.NETWORK_RPC as 'mainnet' | 'testnet' | 'devnet';
@@ -21,6 +22,12 @@ const WalletModalProvider = dynamic(
 );
 
 const Web3Provider = ({ children }: Web3ProviderProps) => {
+    const { theme } = useThemeStore();
+
+    useEffect(() => {
+        document.documentElement.setAttribute('data-theme', theme);
+    }, [theme]);
+
     const network = useMemo(() => {
         switch(networkRPC) {
             case 'mainnet':

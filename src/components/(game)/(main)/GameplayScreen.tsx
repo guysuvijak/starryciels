@@ -154,7 +154,7 @@ const CustomModal = ({ isOpen, onClose, onDelete, onDetail, node, edges, canDele
                     </button>
                     <button
                         className='px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600'
-                        onClick={() => node?.id == 0 ? setGameMenu('mother') : onDetail}
+                        onClick={() => node?.id == 0 ? setGameMenu('spaceship') : onDetail}
                     >
                         Detail
                     </button>
@@ -529,7 +529,7 @@ const initialNodes: Node<NodeData>[] = [
             type: 'Spaceship',
             nodeType: 'Spaceship',
             id: '0',
-            displayName: 'Mother Ship',
+            displayName: 'Spaceship',
             size: 'large',
             supply: 0,
             maxSupply: 0,

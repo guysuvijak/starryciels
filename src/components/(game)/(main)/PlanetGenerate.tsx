@@ -31,7 +31,7 @@ const baseRingsChangeColor = async (color: string, rings: string): Promise<strin
     }
 };
 
-const PlanetGenerate = React.memo(({ color, rings, cloud, surface} : any) => {
+const PlanetGenerate = React.memo(({ color, rings, cloud, surface} : { color: string, rings: string, cloud: string, surface: string}) => {
     const [ isLoading, setIsLoading ] = useState(true);
     const [ baseSvg, setBaseSvg ] = useState<string>('');
     const [ baseRingSvg, setBaseRingSvg ] = useState<string>('');

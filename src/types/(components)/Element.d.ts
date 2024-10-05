@@ -18,6 +18,9 @@ export interface ParallaxEffectProps {
 }
 
 export interface SpinningLoaderProps {
+    label?: boolean;
+    title?: string;
+    button?: boolean;
     size?: number;
     speed?: number;
 };

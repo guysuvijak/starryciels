@@ -6,6 +6,8 @@ const creator1 = publicKey(process.env.ADDRESS_CREATOR as string);
 const collectionName = 'StarryCiels Planet';
 const collectionAddress = publicKey(process.env.ADDRESS_COLLECTION_PLANET as string);
 const signerPublicKey = publicKey(process.env.ADDRESS_SIGNER as string);
+const profilePinata = process.env.PROFILE_PINATA as string;
+const planetColPinata = process.env.PLANET_COL_PINATA as string;
 
 export const CreatePlanetCollection = async () => {
     const signer = generateSigner(umi);
@@ -18,7 +20,7 @@ export const CreatePlanetCollection = async () => {
             'name': collectionName
         },
         'description': 'StarryCiels Planet Collection',
-        'image': 'https://gateway.pinata.cloud/ipfs/QmNUxxRAa8ZdHNszc2JDnTTqgDFjDX9eAvfm9FeBJ7svKY',
+        'image': planetColPinata,
         'name': collectionName,
         'symbol': 'STCTPN',
         'external_url': 'https://starryciels.vercel.app',
@@ -34,7 +36,7 @@ export const CreatePlanetCollection = async () => {
             'files': [
                 {
                     'type':'image/png',
-                    'uri': 'https://gateway.pinata.cloud/ipfs/QmNUxxRAa8ZdHNszc2JDnTTqgDFjDX9eAvfm9FeBJ7svKY',
+                    'uri': planetColPinata,
                 }
             ]
         },
@@ -73,7 +75,7 @@ export const CreateProfileCollection = async () => {
         'name': 'StarryCiels Player Profile',
         'symbol': 'STCTPF',
         'description': 'StarryCiels Player Profile Collection',
-        'image': 'https://gateway.pinata.cloud/ipfs/QmauoA8uruGH4xkde8uLMDQCuzi4QLQ8q4pYmJj1MFZL6N',
+        'image': profilePinata,
         'external_url': 'https://starryciels.vercel.app',
     };
     const metadataString = JSON.stringify(metadata);

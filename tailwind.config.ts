@@ -15,14 +15,23 @@ const config: Config = {
                 'theme-bg-3': 'var(--theme-bg-3)',
                 'theme-bg-4': 'var(--theme-bg-4)',
                 'theme-border': 'var(--theme-border)',
+                'theme-shadow': 'var(--theme-shadow)',
                 'theme-title': 'var(--theme-title)',
                 'theme-title-1': 'var(--theme-title-1)',
                 'theme-subtitle': 'var(--theme-subtitle)',
                 'theme-button': 'var(--theme-button)',
                 'theme-button-h': 'var(--theme-button-h)',
+                'theme-button-t': 'var(--theme-button-t)',
+                'theme-button-d': 'var(--theme-button-d)',
+                'theme-button-50': 'var(--theme-button-50)',
                 'theme-alert': 'var(--theme-alert)',
+                'theme-alert-h': 'var(--theme-alert-h)',
+                'theme-success': 'var(--theme-success)',
+                'theme-success-h': 'var(--theme-success-h)',
                 'theme-active': 'var(--theme-active)',
                 'theme-active-h': 'var(--theme-active-h)',
+                'theme-loader': 'var(--theme-loader)',
+                'theme-loader-h': 'var(--theme-loader-h)'
             },
             borderWidth: {
                 '1': '1px'

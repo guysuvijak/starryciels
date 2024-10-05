@@ -97,7 +97,12 @@ const nextConfig = {
         ADDRESS_COLLECTION_PLANET: process.env.ADDRESS_COLLECTION_PLANET,
         ADDRESS_COLLECTION_PROFILE: process.env.ADDRESS_COLLECTION_PROFILE,
         ADDRESS_SIGNER: process.env.ADDRESS_SIGNER,
-        SECRET_KEY_BASE64: process.env.SECRET_KEY_BASE64
+        SECRET_KEY_BASE64: process.env.SECRET_KEY_BASE64,
+        PROFILE_PINATA: process.env.PROFILE_PINATA,
+        PLANET_PINATA: process.env.PLANET_PINATA,
+        PLANET_COL_PINATA: process.env.PLANET_COL_PINATA,
+        PROFILE_WEBHOOK: process.env.PROFILE_WEBHOOK,
+        PLANET_WEBHOOK: process.env.PLANET_WEBHOOK
     }
 };
 

@@ -6,16 +6,17 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useTranslations } from 'next-intl';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 import { useGameStore } from '@/stores/useStore';
-import axios from 'axios';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
+import { sendWebhookDiscordProfile } from '@/utils/discord-webhook';
+import { ProfileDataProps } from '@/types/(game)/Profile';
 import ParallaxEffect from '@/components/(element)/ParallaxEffect';
 import SpinningLoader from '@/components/(element)/SpinningLoader';
-import { CheckProfile, CreateProfile, UpdateProfile } from '@/metaplex/profile';
+import { CheckProfile, CreateProfile } from '@/metaplex/profile';
 import { decodeAndParseJSON } from '@/utils/decode';
+import ThemeToggle from '@/components/(element)/ThemeToggle';
 
-const WalletMultiButton = dynamic(
-    () => import('@solana/wallet-adapter-react-ui').then(mod => mod.WalletMultiButton),
+const WalletMultiButton = dynamic(() => import('@solana/wallet-adapter-react-ui').then(mod => mod.WalletMultiButton),
     { ssr: false }
 );
 
@@ -31,7 +32,7 @@ const ProfileScreen = () => {
     const [ isCharValid, setIsCharValid ] = useState(false);
     const [ isProfile, setIsProfile ] = useState(false);
     const [ isCreateLoading, setIsCreateLoading ] = useState(false);
-    const [ profileData, setProfileData ] = useState<any>(null);
+    const [ profileData, setProfileData ] = useState<ProfileDataProps | null>(null);
     const [ error, setError ] = useState('');
 
     const isValid = (isLengthValid && isCharValid) ? true : false;
@@ -54,9 +55,9 @@ const ProfileScreen = () => {
         if (walletConnect) {
             try {
                 const response = await CheckProfile(String(wallet.publicKey));
-                if(response[0].publicKey !== null) {
+                if(response && response[0].publicKey !== null) {
                     const decodedData = decodeAndParseJSON(response[0].uri);
-                    setProfileData({...response[0], decodedUri: decodedData});
+                    setProfileData({...response[0], decodedUri: decodedData} as ProfileDataProps);
                     setProfilePublic(response[0].publicKey);
                     setIsProfile(true);
                 }
@@ -72,11 +73,6 @@ const ProfileScreen = () => {
         setIsLoading(false);
     };
 
-    const updatePro = async () => {
-        const response = await UpdateProfile(String(wallet.publicKey), '4cBzuK72e5dGojac229F24qjyDsAdt4kmCPryKu48mBT');
-        console.log(response)
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isValid) {
@@ -85,26 +81,7 @@ const ProfileScreen = () => {
                 const response = await CreateProfile(String(wallet.publicKey), nickName);
                 if(response) {
                     checkProfile();
-                    await axios.post('https://discord.com/api/webhooks/1291441018691915866/NbyinPz7Wfbm51-BAfM9ttBWYDj5rEmP9AAnvdSVIlVHN-nzZMr73TIUEGjaZZeyde9R', {
-                        content: null,
-                        embeds: [
-                            {
-                                "title": nickName,
-                                "url": `https://core.metaplex.com/explorer/${response.assetAddress}?env=devnet`,
-                                "color": 5898140,
-                                "author": {
-                                    "name": "New Player Create Profile"
-                                },
-                                "footer": {
-                                  "text": "Birthday"
-                                },
-                                "timestamp": new Date(),
-                                "image": {
-                                  "url": "https://gateway.pinata.cloud/ipfs/QmauoA8uruGH4xkde8uLMDQCuzi4QLQ8q4pYmJj1MFZL6N"
-                                }
-                            }
-                        ]
-                    });
+                    await sendWebhookDiscordProfile(nickName, response.assetAddress);
                     setIsCreateLoading(false);
                 }
             } catch (err: unknown) {
@@ -116,9 +93,9 @@ const ProfileScreen = () => {
 
     const RequireComponent = ({ title, state }: {title: string, state: boolean}) => {
         return (
-            <div className={`flex items-center ${state ? 'text-green-500' : 'text-red-500'}`}>
+            <div className={`flex items-center ${state ? 'text-theme-success' : 'text-theme-alert'}`}>
                 {state ? <FaCheck /> : <FaTimes />}
-                <p className='pl-1 text-[12px] sm:text-sm'>{title}</p>
+                <p className='pl-1 text-[12px] md:text-sm'>{title}</p>
             </div>
         )
     };
@@ -137,10 +114,10 @@ const ProfileScreen = () => {
         }, []);
         
         return (
-            <form onSubmit={handleSubmit} className='flex flex-col items-center bg-white p-4 sm:p-6 rounded-lg shadow-md'>
+            <form onSubmit={handleSubmit} className='flex flex-col items-center bg-theme-bg-0 p-4 md:p-6 rounded-lg shadow-md'>
                 <div className='flex self-start'>
-                    <p className='font-medium mb-1'>{t('nickname')}</p>
-                    <p className='pl-1 text-red-500'>{'*'}</p>
+                    <p className='font-medium mb-1 text-theme-title'>{t('nickname')}</p>
+                    <p className='pl-1 text-theme-alert'>{'*'}</p>
                 </div>
                 <input
                     ref={inputRef}
@@ -150,8 +127,9 @@ const ProfileScreen = () => {
                     minLength={3}
                     maxLength={20}
                     placeholder={t('nickname-p')}
-                    className={`w-full p-2 mb-2 rounded shadow border-1 ${!isValid && 'border-red-500 text-red-500 shadow-red-500'}`}
+                    className={`w-full p-2 mb-2 rounded shadow border-1 bg-theme-bg-0 placeholder:text-theme-subtitle ${isValid ? 'text-theme-title border-theme-border' : 'text-theme-alert border-theme-alert shadow-theme-alert'}`}
                     disabled={isCreateLoading}
+                    spellCheck={false}
                 />
                 <div className='w-full mb-4'>
                     <RequireComponent title={t('require-1')} state={isLengthValid} />
@@ -159,65 +137,65 @@ const ProfileScreen = () => {
                 </div>
                 <button 
                     type='submit'
-                    className={`text-white px-4 py-2 rounded ${isValid ? 'bg-black hover:bg-gray-800' : 'bg-gray-500'}`}
+                    className={`text-theme-button-t px-4 py-2 rounded ${isValid ? 'bg-theme-button hover:bg-theme-button-h' : 'bg-theme-button-d cursor-not-allowed'}`}
                     disabled={!isValid || isCreateLoading}
                 >
-                    {isCreateLoading ? <SpinningLoader /> : t('create-button')}
+                    {isCreateLoading ? <SpinningLoader label /> : t('create-button')}
                 </button>
-                {error !== '' && <p className='text-red-500'>{error}</p>}
+                {error !== '' && <p className='text-theme-alert'>{error}</p>}
             </form>
         )
     };
 
     const ConnectProfileComponent = () => {
-        const nicknameAttribute = profileData.decodedUri.attributes.find((attr: { trait_type: string; value: string }) => attr.trait_type === 'nickname').value;
+        const nicknameAttribute = profileData?.decodedUri?.attributes?.find(attr => attr.trait_type === 'nickname')?.value || 'Unknown';
+
         return (
-            <div className='flex flex-col items-center py-2 mt-2'>
-                <div className='flex'>
-                    <p>{'nickname:'}</p>
-                    <p className='pl-1 font-medium'>{nicknameAttribute}</p>
-                </div>
-                <button
-                    className='w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-800 hover:to-indigo-800 text-white font-bold py-3 px-4 rounded-md transition duration-300 ease-in-out transform hover:-translate-y-1'
-                    onClick={() => [setGameMenu('mother'), setNicknameProfile(nicknameAttribute)]}
+            <div className='flex flex-col items-center'>
+                <p className='text-[18px] md:text-[20px] font-medium mb-2 text-theme-success'>{nicknameAttribute}</p>
+                <button 
+                    className={'text-theme-button-t px-4 py-2 rounded bg-theme-button hover:bg-theme-button-h'}
+                    onClick={() => [setGameMenu('spaceship'), setNicknameProfile(nicknameAttribute)]}
                 >
                     {t('login-button')}
                 </button>
-                {wallet.publicKey == 'HQx4BtM2QuGHg3RWmd1axx5JxMj7t5UDzhcm1fosm1uH' as any &&
-                    <button onClick={() => updatePro()}>
-                        Update
-                    </button>
-                }
             </div>
         )
     };
 
     return (
         <ParallaxEffect>
-            <div className='flex flex-col w-screen h-screen sm:w-full sm:h-full justify-center items-center p-6 sm:m-4 sm:rounded-2xl text-black bg-gradient-to-tr to-slate-100 from-slate-300 relative z-100'>
+            <div className='flex flex-col min-w-[300px] w-screen h-screen md:w-full md:h-full justify-center items-center p-6 md:m-4 md:rounded-2xl bg-gradient-to-tr to-theme-bg-0 from-theme-bg-1 relative z-100 md:border-2 md:border-theme-border'>
+                <div className='absolute top-0 right-0 p-4'>
+                    <ThemeToggle />
+                </div>
                 <Image
                     src='/assets/images/profile.webp'
                     width={200}
                     height={200}
                     alt='profile'
-                    className='w-[150px] h-[150px] rounded-full bg-[#000000] mb-2' 
+                    className='w-[150px] h-[150px] rounded-full bg-theme-bg-2 mb-4' 
                     draggable={false} 
                     priority 
                 />
                 {isLoading ? (
-                    <div className='flex items-center'>
-                        <SpinningLoader />
-                        <p className='ml-1'>Loading ...</p>
+                    <div className='flex items-center justify-center min-h-[80px]'>
+                        <SpinningLoader label />
                     </div>
                 ) : (
                     <>
                         <WalletMultiButton />
                         <div className='flex flex-col items-center my-2'>
-                            <h1 className='text-[22px] font-medium'>{(walletConnect && isProfile) ? t('header-success') : walletConnect ? t('header-create') : t('header-connect')}</h1>
-                            <h2 className='text-gray-500'>{(walletConnect && isProfile) ? t('description-success') : walletConnect ? t('description-create') : t('description-connect')}</h2>
+                            <h1 className='text-[20px] md:text-[22px] font-bold text-theme-title'>
+                                {(walletConnect && isProfile) ? t('header-success') : walletConnect ? t('header-create') : t('header-connect')}
+                            </h1>
+                            <h2 className='text-[16px] md:text-[18px] text-theme-subtitle'>
+                                {(walletConnect && isProfile) ? t('description-success') : walletConnect ? t('description-create') : t('description-connect')}
+                            </h2>
+                            {!walletConnect && <h2 className='text-orange-600'>{t('description-solflare')}</h2>}
                         </div>
-                        {!walletConnect && <h2 className='text-gray-500 mb-2'>{t('description-solflare')}</h2>}
-                        {(walletConnect && isProfile) ? (
+                        
+                        {(walletConnect && isProfile && profileData) ? (
                             <ConnectProfileComponent />
                         ) : (
                             <>

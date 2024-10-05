@@ -1,17 +1,15 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next-nprogress-bar';
-import { useTranslations } from 'next-intl';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useGameStore } from '@/stores/useStore';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
+import SpinningLoader from '@/components/(element)/SpinningLoader';
 import ProfileScreen from '@/components/(game)/(main)/ProfileScreen';
 import GameplayScreen from '@/components/(game)/(main)/GameplayScreen';
-import MotherScreen from '@/components/(game)/(main)/MotherScreen';
+import SpaceshipScreen from '@/components/(game)/(main)/SpaceshipScreen';
 
 const Game = () => {
-    const router = useRouter();
     const wallet = useWallet();
     const { gameMenu, setGameMenu } = useGameStore();
 
@@ -25,13 +23,13 @@ const Game = () => {
     
     return (
         <div className='flex h-full w-full justify-center items-center bg-black'>
-            {(isLoading) ? (
-                <div>Loading ...</div>
+            {isLoading ? (
+                <SpinningLoader size={50} />
             ) : (
                 <>
                     {gameMenu === 'profile' && <ProfileScreen />}
-                    {(wallet.connected && gameMenu === 'mother') && <MotherScreen />}
-                    {(wallet.connected && (gameMenu === 'game' || gameMenu === 'mother')) && <GameplayScreen />}
+                    {(wallet.connected && gameMenu === 'spaceship') && <SpaceshipScreen />}
+                    {(wallet.connected && (gameMenu === 'game' || gameMenu === 'spaceship')) && <GameplayScreen />}
                 </>
             )}
         </div>
