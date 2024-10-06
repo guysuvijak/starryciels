@@ -33,7 +33,6 @@ const ProfileScreen = () => {
     const [ isProfile, setIsProfile ] = useState(false);
     const [ isCreateLoading, setIsCreateLoading ] = useState(false);
     const [ profileData, setProfileData ] = useState<ProfileDataProps | null | undefined>(null);
-    console.log('profileData',profileData)
     const [ error, setError ] = useState('');
 
     const isValid = (isLengthValid && isCharValid) ? true : false;

@@ -39,7 +39,7 @@ interface NodeData {
     displayName: string;
     isConnected?: boolean;
     connectedEdgesCount?: number;
-    size: 'small' | 'medium' | 'large';
+    size: 'Small' | 'Medium' | 'Large';
     supply: number;
     maxSupply: number;
     connectedNodes?: string[];
@@ -69,9 +69,15 @@ const nodeDisplayNames: Record<string, string> = {
 
 const nodeImages = {
     SpaceshipSpaceship: '/assets/images/spaceship.webp',
-    OreExport: '/assets/images/node-ore.webp',
-    FuelExport: '/assets/images/node-fuel.webp',
-    FoodExport: '/assets/images/node-food.webp',
+    OreExportSmall: '/assets/images/ore-small.webp',
+    OreExportMedium: '/assets/images/ore-medium.webp',
+    OreExportLarge: '/assets/images/ore-large.webp',
+    FuelExportSmall: '/assets/images/fuel-small.webp',
+    FuelExportMedium: '/assets/images/fuel-medium.webp',
+    FuelExportLarge: '/assets/images/fuel-large.webp',
+    FoodExportSmall: '/assets/images/food-small.webp',
+    FoodExportMedium: '/assets/images/food-medium.webp',
+    FoodExportLarge: '/assets/images/food-large.webp',
     OreImport: '/assets/images/ore-station.webp',
     FuelImport: '/assets/images/fuel-station.webp',
     FoodImport: '/assets/images/food-station.webp',
@@ -378,7 +384,7 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
     }, [id, nodeType, maxSupply, supply, isConnected, connectedEdgesCount, efficiency, updateNode, isConnectSpaceship]);
   
     const nodeSize = useMemo(() => {
-      const sizes: any = { small: 40, medium: 60, large: 80 };
+      const sizes: any = { Small: 40, Medium: 60, Large: 80 };
       return sizes[size];
     }, [size]);
   
@@ -437,34 +443,35 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
         }
       
         return (
-          <>
-            {(nodeType === 'Import' || nodeType === 'Export') && (
+            <>
+                {(nodeType === 'Import' || nodeType === 'Export') && (
+                    <Handle 
+                        type='source' 
+                        position={handlePositions.source || Position.Right} 
+                        id={`${handlePositions.source || Position.Right}-handle`}
+                        style={{ 
+                            ...commonStyle,
+                            right: -6,
+                            backgroundColor: '#ff0000'
+                        }} 
+                    />
+                )}
+                {(nodeType === 'Import') && handlePositions.target && !Array.isArray(handlePositions.target) && (
                 <Handle 
-                    type='source' 
-                    position={handlePositions.source || Position.Right} 
-                    id={`${handlePositions.source || Position.Right}-handle`}
+                    type='target' 
+                    position={handlePositions.target} 
+                    id={`${handlePositions.target}-handle`}
                     style={{ 
                         ...commonStyle,
-                        right: -6,
-                        backgroundColor: '#ff0000'
+                        left: -6,
+                        backgroundColor: '#00ff15'
                     }} 
                 />
-            )}
-            {(nodeType === 'Import') && handlePositions.target && !Array.isArray(handlePositions.target) && (
-              <Handle 
-                type='target' 
-                position={handlePositions.target} 
-                id={`${handlePositions.target}-handle`}
-                style={{ 
-                    ...commonStyle,
-                    left: -6,
-                    backgroundColor: '#00ff15'
-                }} 
-              />
-            )}
-          </>
+                )}
+            </>
         );
-      }, [nodeType, handlePositions]);
+    }, [nodeType, handlePositions]);
+    console.log('test', type, nodeType, nodeType === 'Import' && size, warning)
   
     return (
         <>
@@ -484,7 +491,7 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
                 onMouseLeave={() => setIsHovered(false)}
             >
                 <Image
-                    src={(nodeImages[`${type}${nodeType}${warning}` as keyof typeof nodeImages]) as string}
+                    src={(nodeImages[`${type}${nodeType}${nodeType === 'Export' ? size : ''}${warning}` as keyof typeof nodeImages]) as string}
                     alt={`${type} ${nodeType}`}
                     width={200}
                     height={200}
@@ -530,7 +537,7 @@ const initialNodes: Node<NodeData>[] = [
             nodeType: 'Spaceship',
             id: '0',
             displayName: 'Spaceship',
-            size: 'large',
+            size: 'Large',
             supply: 0,
             maxSupply: 0,
             handlePositions: {
@@ -550,7 +557,7 @@ const initialNodes: Node<NodeData>[] = [
             nodeType: 'Export', 
             id: '1', 
             displayName: 'Ore', 
-            size: 'small',
+            size: 'Small',
             supply: 10,
             maxSupply: 1000,
             handlePositions: {
@@ -570,7 +577,7 @@ const initialNodes: Node<NodeData>[] = [
             nodeType: 'Import', 
             id: '2', 
             displayName: 'Ore Station', 
-            size: 'small',
+            size: 'Small',
             supply: 0,
             maxSupply: 10,
             handlePositions: {
@@ -591,7 +598,7 @@ const initialNodes: Node<NodeData>[] = [
             nodeType: 'Export', 
             id: '3', 
             displayName: 'Fuel', 
-            size: 'large',
+            size: 'Large',
             supply: 1000,
             maxSupply: 1000,
             handlePositions: {
@@ -611,7 +618,7 @@ const initialNodes: Node<NodeData>[] = [
             nodeType: 'Import', 
             id: '4', 
             displayName: 'Fuel Station', 
-            size: 'small',
+            size: 'Small',
             supply: 0,
             maxSupply: 1000,
             handlePositions: {
@@ -632,7 +639,7 @@ const initialNodes: Node<NodeData>[] = [
             nodeType: 'Export', 
             id: '5', 
             displayName: 'Food', 
-            size: 'medium',
+            size: 'Medium',
             supply: 1000,
             maxSupply: 1000,
             handlePositions: {
@@ -1142,7 +1149,7 @@ const GameplayScreen = () => {
                 nodeType: nodeCategory as NodeType,
                 id: newNodeId,
                 displayName: nodeDisplayNames[nodeType] || nodeType,
-                size: 'small',
+                size: 'Small',
                 supply: 0,
                 maxSupply: 1000,
                 handlePositions: {

@@ -5,6 +5,8 @@ import { AiFillSetting } from 'react-icons/ai';
 
 const Navbar = () => {
 
+    
+
     const CustomResource = ({ name, amount }: { name: string, amount: number }) => {
         return (
             <div className='flex w-[100%] mr-2 sm:mr-4 justify-center items-center bg-theme-bg-0 text-theme-title-1 rounded-md px-2 border-2 border-theme-border'>

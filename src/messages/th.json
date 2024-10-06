@@ -37,6 +37,8 @@
     },
     "Website": {
         "locale": "th",
+        "login-button": "รอสักครู่ ...",
+        "launch-button": "กำลังเดินทาง ...",
         "navbar-title": "StarryCiels",
         "navbar-button": "เล่น",
         "footer-title": "โซเชียล & ชุมชน",

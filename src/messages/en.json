@@ -37,6 +37,8 @@
     },
     "Website": {
         "locale": "en",
+        "login-button": "Coming ...",
+        "launch-button": "Traveling ...",
         "navbar-title": "StarryCiels",
         "navbar-button": "PLAY",
         "footer-title": "Social & Community",
