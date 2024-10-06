@@ -90,7 +90,6 @@ const nextConfig = {
         ]
     },
     env: {
-        DATABASE_URL: process.env.DATABASE_URL,
         NETWORK_RPC: process.env.NETWORK_RPC,
         RPC_URL: process.env.RPC_URL,
         ADDRESS_CREATOR: process.env.ADDRESS_CREATOR,

@@ -32,7 +32,8 @@ const ProfileScreen = () => {
     const [ isCharValid, setIsCharValid ] = useState(false);
     const [ isProfile, setIsProfile ] = useState(false);
     const [ isCreateLoading, setIsCreateLoading ] = useState(false);
-    const [ profileData, setProfileData ] = useState<ProfileDataProps | null>(null);
+    const [ profileData, setProfileData ] = useState<ProfileDataProps | null | undefined>(null);
+    console.log('profileData',profileData)
     const [ error, setError ] = useState('');
 
     const isValid = (isLengthValid && isCharValid) ? true : false;
@@ -56,6 +57,7 @@ const ProfileScreen = () => {
             try {
                 const response = await CheckProfile(String(wallet.publicKey));
                 if(response && response[0].publicKey !== null) {
+                    console.log('test', response)
                     const decodedData = decodeAndParseJSON(response[0].uri);
                     setProfileData({...response[0], decodedUri: decodedData} as ProfileDataProps);
                     setProfilePublic(response[0].publicKey);
