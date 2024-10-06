@@ -82,23 +82,32 @@ export const CheckProfile = async (owner: string, maxRetries = 10) => {
     }
 };
 
-export const UpdateProfile = async (owner: string, assetId: string) => {
-    const response = await updatePlugin(umi, {
-        asset: publicKey(assetId),
-        collection: publicKey('3DUrFrZyz6XaRriG4NzkH41eK9HHP2G4w2ksg2omwAH3'),
-        plugin: {
-            type: 'Attributes',
-            attributeList: [
-                { key: 'birthday', value: '2024-10-05T06:03:55.524Z' },
-                { key: 'nickname', value: 'MintPlease' },
-                { key: 'ore', value: '10' },
-                { key: 'fuel', value: '20' },
-                { key: 'food', value: '40' },
-            ]
-        }
+export const UpdateProfile = async (owner: string, assetId: string, type: string, resource: string) => {
+    const profileData = await CheckProfile(owner);
+    if (profileData && profileData[0]?.attributes?.attributeList) {
+        const attributeList = profileData[0].attributes.attributeList;
+        const birthday = String(attributeList.find(attr => attr.key === 'birthday')?.value) || '';
+        const nickname = String(attributeList.find(attr => attr.key === 'nickname')?.value) || '';
+        const ore = Number(attributeList.find(attr => attr.key === 'ore')?.value) || 0;
+        const fuel = Number(attributeList.find(attr => attr.key === 'fuel')?.value) || 0;
+        const food = Number(attributeList.find(attr => attr.key === 'food')?.value) || 0;
 
-    }).sendAndConfirm(umi);
-    return response;
+        const response = await updatePlugin(umi, {
+            asset: publicKey(assetId),
+            collection: addressCollectionProfile,
+            plugin: {
+                type: 'Attributes',
+                attributeList: [
+                    { key: 'birthday', value: birthday },
+                    { key: 'nickname', value: nickname },
+                    { key: 'ore', value: String(ore + Number(type === 'Ore' ? Number(resource) : 0)) },
+                    { key: 'fuel', value: String(fuel + Number(type === 'Fuel' ? Number(resource) : 0)) },
+                    { key: 'food', value: String(food + Number(type === 'Food' ? Number(resource) : 0)) },
+                ]
+            }
+        }).sendAndConfirm(umi);
+        return response;
+    }
 };
 
 export const ThawProfile = async (owner: string, assetId: string) => {

@@ -118,7 +118,7 @@ const OwnPlanetComponent = ({data, isLoading, onBuyClick, onRefresh, cooldown}: 
                                 data-tooltip-id={'tooltip-view'}
                                 data-tooltip-content={t('view-tooltip')}
                                 onClick={() => handleSolscanClick(planet.publicKey)}
-                                className='p-2 bg-theme-button-50 text-theme-button-t hover:bg-theme-button-h rounded-md absolute top-2 right-2'
+                                className='p-2 text-theme-title hover:bg-theme-button-50 rounded-md absolute top-2 right-2'
                             >
                                 <FaExternalLinkAlt size={18} />
                             </button>

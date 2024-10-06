@@ -56,7 +56,6 @@ const ProfileScreen = () => {
             try {
                 const response = await CheckProfile(String(wallet.publicKey));
                 if(response && response[0].publicKey !== null) {
-                    console.log('test', response)
                     const decodedData = decodeAndParseJSON(response[0].uri);
                     setProfileData({...response[0], decodedUri: decodedData} as ProfileDataProps);
                     setProfilePublic(response[0].publicKey);

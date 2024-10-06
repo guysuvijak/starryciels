@@ -17,7 +17,7 @@ const AlertModal = ({ isOpen, onClose, message }: AlertModalProps) => {
                 <IoIosAlert size={60} className='text-theme-alert mb-2' />
                 <p className='sm:text-lg text-theme-title whitespace-pre-wrap text-center'>{message}</p>
                 <button
-                    className='sm:text-lg px-10 py-2 rounded bg-theme-button hover:bg-theme-button-h space-x-2 mt-4'
+                    className='sm:text-lg px-10 py-2 rounded bg-theme-button hover:bg-theme-button-h text-theme-button-t space-x-2 mt-4'
                     onClick={onClose}
                 >
                     {t('alert-button')}
