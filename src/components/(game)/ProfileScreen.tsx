@@ -14,6 +14,7 @@ import ParallaxEffect from '@/components/(element)/ParallaxEffect';
 import SpinningLoader from '@/components/(element)/SpinningLoader';
 import { CheckProfile, CreateProfile } from '@/metaplex/profile';
 import { decodeAndParseJSON } from '@/utils/decode';
+import LanguageSelector from '@/components/(element)/LanguageSelector';
 import ThemeToggle from '@/components/(element)/ThemeToggle';
 
 const WalletMultiButton = dynamic(() => import('@solana/wallet-adapter-react-ui').then(mod => mod.WalletMultiButton),
@@ -165,7 +166,10 @@ const ProfileScreen = () => {
 
     return (
         <ParallaxEffect>
-            <div className='flex flex-col min-w-[300px] w-screen h-screen md:w-full md:h-full justify-center items-center p-6 md:m-4 md:rounded-2xl bg-gradient-to-tr to-theme-bg-0 from-theme-bg-1 relative z-100 md:border-2 md:border-theme-border'>
+            <div className='flex flex-col min-w-[350px] w-screen h-screen md:w-full md:h-full justify-center items-center p-6 md:m-4 md:rounded-2xl bg-gradient-to-tr to-theme-bg-0 from-theme-bg-1 relative z-100 md:border-2 md:border-theme-border'>
+                <div className='absolute top-0 left-0 p-4'>
+                    <LanguageSelector />
+                </div>
                 <div className='absolute top-0 right-0 p-4'>
                     <ThemeToggle />
                 </div>

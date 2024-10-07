@@ -14,10 +14,10 @@ const Game = () => {
     const { gameMenu, setGameMenu } = useGameStore();
     
     useEffect(() => {
-        if (!gameMenu) {
+        if (!gameMenu || !wallet.connected) {
             setGameMenu('profile');
         }
-    }, [wallet, gameMenu, setGameMenu]);
+    }, [wallet, gameMenu]);
     
     if (!gameMenu) {
         return <SpinningLoader size={50} />;

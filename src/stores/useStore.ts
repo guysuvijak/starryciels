@@ -1,20 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { LanguageState, ThemeState, GameState, ResourceState } from '@/types/(store)/BearStore';
+import { ThemeState, GameState, ResourceState } from '@/types/(store)/BearStore';
 import { CheckProfile } from '@/metaplex/profile';
-
-export const useLanguageStore = create<LanguageState>()(
-    persist(
-        (set) => ({
-            isLanguageView: false,
-            setIsLanguageView: (isLanguageView) => set({ isLanguageView })
-        }),
-        {
-            name: 'language-storage',
-            storage: createJSONStorage(() => localStorage)
-        }
-    )
-);
 
 export const useThemeStore = create<ThemeState>()(
     persist(

@@ -18,6 +18,7 @@ import useWindowSize from '@/hook/useWindowSize';
 import Navbar from './Navbar';
 import Panel from './Panel';
 
+import LanguageSelector from '@/components/(element)/LanguageSelector';
 import { UpdateProfile } from '@/metaplex/profile';
 import AlertModal from '@/components/(element)/AlertModal';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -186,6 +187,11 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                             {nodeType === 'Export' && <p className={`ml-1 ${supply <= 0 && 'text-theme-alert'}`}>{supply.toFixed(2)}</p>}
                             {nodeType === 'Import' && <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>}
                             <p>/{maxSupply}</p>
+                        </div>
+                    }
+                    {nodeType === 'Spaceship' &&
+                        <div className='my-2'>
+                            <LanguageSelector />
                         </div>
                     }
                 </div>
