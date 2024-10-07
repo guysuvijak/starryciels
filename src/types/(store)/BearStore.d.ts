@@ -25,6 +25,10 @@ export interface GameState {
     setLandingColor: (landingColor) => void;
     nicknameProfile: string | null;
     setNicknameProfile: (nicknameProfile) => void;
+    modalOpen: boolean;
+    setModalOpen: (modalOpen) => void;
+    successMessage: string;
+    setSuccessMessage: (successMessage) => void;
 };
 
 export interface ResourceState {

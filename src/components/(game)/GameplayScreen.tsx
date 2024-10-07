@@ -119,7 +119,7 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
     const wallet = useWallet();
     const { fetchResources } = useResourceStore();
     const updateNode = useNodeStore(state => state.updateNode);
-    const { profilePublic, setGameMenu } = useGameStore();
+    const { profilePublic, setGameMenu, successMessage, setSuccessMessage } = useGameStore();
     const [ isSend, setIsSend ] = useState(false);
     const nodeSelect: any = useNodeStore(state => node ? state.nodes[node.id] : null);
     
@@ -163,9 +163,11 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
             }
             if (wallet.publicKey) {
                 await fetchResources(wallet.publicKey.toString());
+                setSuccessMessage('Resources sent successfully!');
             }
         } catch(err) {
             console.error(err);
+            setSuccessMessage('Failed to send resources. Please try again.');
         } finally {
             setIsSend(false);
         }
@@ -181,7 +183,8 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                     {nodeType !== 'Spaceship' &&
                         <div className='flex text-theme-title'>
                             <p>Supply:</p>
-                            <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>
+                            {nodeType === 'Export' && <p className={`ml-1 ${supply <= 0 && 'text-theme-alert'}`}>{supply.toFixed(2)}</p>}
+                            {nodeType === 'Import' && <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>}
                             <p>/{maxSupply}</p>
                         </div>
                     }
@@ -195,10 +198,10 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                     </button>
                     {nodeType === 'Spaceship' &&
                         <button
-                            className='px-4 py-2 bg-theme-active text-white rounded hover:bg-theme-active-h'
+                            className='px-4 py-2 bg-theme-button text-theme-button-t rounded hover:bg-theme-button-h'
                             onClick={() => setGameMenu('spaceship')}
                         >
-                            Detail
+                            Enter Ship
                         </button>
                     }
                     {visibleDelete && 
@@ -223,6 +226,9 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                     }
                     <Tooltip id={'tooltip-delete'} content={'Disconnect all node first'} />
                     <Tooltip id={'tooltip-send'} content={'Connect Spaceship first'} />
+                </div>
+                <div className='flex w-full justify-center'>
+                    {successMessage !== '' && <p className='text-orange-500 mt-2'>{successMessage}</p>}
                 </div>
             </div>
         </div>
@@ -297,17 +303,14 @@ const DistanceIndicator: React.FC<DistanceIndicatorProps> = ({ sourceX, sourceY,
     const transform = useStore((state) => state.transform);
     const { getNodes } = useReactFlow();
     const [tX, tY, tScale] = transform;
-
-    // Convert screen coordinates to flow coordinates
+    
     const sourceFlowX = (sourceX - tX) / tScale;
     const sourceFlowY = (sourceY - tY) / tScale;
     const targetFlowX = (targetX - tX) / tScale;
     const targetFlowY = (targetY - tY) / tScale;
-
-    // Get all nodes
+    
     const nodes = getNodes();
-
-    // Find the closest nodes to the source and target points
+    
     const sourceNode = nodes.reduce((closest: ClosestNode, node) => {
         const dx = node.position.x - sourceFlowX;
         const dy = node.position.y - sourceFlowY;
@@ -321,15 +324,13 @@ const DistanceIndicator: React.FC<DistanceIndicatorProps> = ({ sourceX, sourceY,
         const distance = Math.sqrt(dx * dx + dy * dy);
         return distance < closest.distance ? { node, distance } : closest;
     }, { node: null, distance: Infinity }).node;
-
-    // Calculate the distance using the same formula as in onConnect
+    
     const distance = sourceNode && targetNode
         ? Math.sqrt(
             Math.pow(targetNode.position.x - sourceNode.position.x, 2) +
             Math.pow(targetNode.position.y - sourceNode.position.y, 2)
         ) : 0;
-
-    // Calculate the midpoint for positioning the indicator
+    
     const midX = (sourceX + targetX) / 2;
     const midY = (sourceY + targetY) / 2;
 
@@ -453,9 +454,10 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
         <p><strong>{displayName} (#{id})</strong></p>
         <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={18} height={18} className='mx-1 w-[18px] h-[18px]' />} {type}</p>
         {nodeType !== 'Spaceship' &&
-            <div className='flex text-theme-title'>
+            <div className='flex text-white'>
                 <p>Supply: </p>
-                <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>
+                {nodeType === 'Export' && <p className={`ml-1 ${supply <= 0 && 'text-theme-alert'}`}>{supply.toFixed(2)}</p>}
+                {nodeType === 'Import' && <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>}
                 <p>/{maxSupply}</p>
             </div>
         }
@@ -596,34 +598,14 @@ const initialNodes: Node<NodeData>[] = [
         id: '1',
         type: 'custom',
         data: { 
-            label: 'Ore Export', 
-            type: 'Ore', 
-            nodeType: 'Export', 
-            id: '1', 
-            displayName: 'Ore', 
-            size: 'Small',
-            supply: 5,
-            maxSupply: 1000,
-            handlePositions: {
-                source: Position.Right
-            },
-            isTemporary: false,
-            warning: ''
-        },
-        position: { x: -100, y: 100 },
-    },
-    {
-        id: '2',
-        type: 'custom',
-        data: { 
             label: 'Ore Import', 
             type: 'Ore', 
             nodeType: 'Import', 
-            id: '2', 
+            id: '1', 
             displayName: 'Ore Station', 
             size: 'Small',
             supply: 0,
-            maxSupply: 10,
+            maxSupply: 1000,
             handlePositions: {
                 target: Position.Left,
                 source: Position.Right
@@ -634,33 +616,13 @@ const initialNodes: Node<NodeData>[] = [
         position: { x: 300, y: 100 },
     },
     {
-        id: '3',
-        type: 'custom',
-        data: { 
-            label: 'Fuel Export', 
-            type: 'Fuel', 
-            nodeType: 'Export', 
-            id: '3', 
-            displayName: 'Fuel', 
-            size: 'Large',
-            supply: 1000,
-            maxSupply: 1000,
-            handlePositions: {
-                source: Position.Right
-            },
-            isTemporary: false,
-            warning: ''
-        },
-        position: { x: -100, y: 200 },
-    },
-    {
-        id: '4',
+        id: '2',
         type: 'custom',
         data: { 
             label: 'Fuel Import', 
             type: 'Fuel', 
             nodeType: 'Import', 
-            id: '4', 
+            id: '2', 
             displayName: 'Fuel Station', 
             size: 'Small',
             supply: 0,
@@ -675,18 +637,19 @@ const initialNodes: Node<NodeData>[] = [
         position: { x: 300, y: 200 },
     },
     {
-        id: '5',
+        id: '3',
         type: 'custom',
         data: { 
-            label: 'Food Export', 
-            type: 'Food', 
-            nodeType: 'Export', 
-            id: '5', 
-            displayName: 'Food', 
-            size: 'Medium',
-            supply: 1000,
+            label: 'Food Import',
+            type: 'Food',
+            nodeType: 'Import',
+            id: '3',
+            displayName: 'Food',
+            size: 'Small',
+            supply: 0,
             maxSupply: 1000,
             handlePositions: {
+                target: Position.Left,
                 source: Position.Right
             },
             isTemporary: false,
@@ -726,12 +689,12 @@ const CustomEdge: React.FC<CustomEdgeProps> = ({
     });
   
     const trafficLevel: any = data?.trafficLevel || 0;
-    const colors = ['#4caf50', '#ffeb3b', '#ff9800', '#f44336']; // green, yellow, orange, red
+    const colors = ['#4caf50', '#ffeb3b', '#ff9800', '#f44336'];
     const edgeColor = colors[Math.min(trafficLevel, colors.length - 1)];
     const strokeWidth = 1 + trafficLevel;
     
-    const efficiency = Math.max(0, 100 - trafficLevel * 20); // 100% - (20% per traffic level)
-    const animationDuration = 1 / (efficiency / 100); // Slower animation for lower efficiency
+    const efficiency = Math.max(0, 100 - trafficLevel * 20);
+    const animationDuration = 1 / (efficiency / 100);
     
     return (
         <>
@@ -813,21 +776,34 @@ const doEdgesIntersect = (edge1: number[], edge2: number[]): boolean => {
     return (t >= 0 && t <= 1 && u >= 0 && u <= 1);
 };
 
-const generateRandomExportNodes = (existingNodes: Node<NodeData>[], startId: number, count = 10): Node<NodeData>[] => {
+const generateRandomExportNodes = (existingNodes: Node<NodeData>[], startId: number, count = 20): Node<NodeData>[] => {
     const newNodes: Node<NodeData>[] = [];
     const resourceTypes = ['Ore', 'Fuel', 'Food'];
     const sizes = ['Small', 'Medium', 'Large'] as const;
   
     const getRandomPosition = () => {
-        const margin = 200;
+        const range = 1000;
         return {
-            x: Math.floor(Math.random() * (window.innerWidth - 2 * margin)) + margin,
-            y: Math.floor(Math.random() * (window.innerHeight - 2 * margin)) + margin
+            x: Math.floor(Math.random() * range * 2) - range,
+            y: Math.floor(Math.random() * range * 2) - range
         };
     };
   
     const isPositionValid = (position: { x: number; y: number }, nodes: Node<NodeData>[]) => {
         return !checkNodeCollision({ id: 'temp', position, data: {} as NodeData } as Node<NodeData>, [...existingNodes, ...nodes]);
+    };
+
+    const getSupplyBySize = (size: typeof sizes[number]): number => {
+        switch (size) {
+            case 'Small':
+                return 1000;
+            case 'Medium':
+                return 3000;
+            case 'Large':
+                return 8000;
+            default:
+                return 1000;
+        }
     };
 
     let currentId = startId;
@@ -849,6 +825,7 @@ const generateRandomExportNodes = (existingNodes: Node<NodeData>[], startId: num
         } while (!isPositionValid(position, newNodes));
   
         if (attempts <= maxAttempts) {
+            const supply = getSupplyBySize(size);
             const newNode: Node<NodeData> = {
                 id: currentId.toString(),
                 type: 'custom',
@@ -860,8 +837,8 @@ const generateRandomExportNodes = (existingNodes: Node<NodeData>[], startId: num
                     id: currentId.toString(),
                     displayName: `${resourceType}`,
                     size: size,
-                    supply: 1000,
-                    maxSupply: 1000,
+                    supply: supply,
+                    maxSupply: supply,
                     handlePositions: {
                         source: Position.Right
                     },
@@ -878,16 +855,16 @@ const generateRandomExportNodes = (existingNodes: Node<NodeData>[], startId: num
 
 const GameplayScreen = () => {
     const { widowWidth, windowHeight } = useWindowSize();
-    const { landingColor, landingPublic } = useGameStore();
+    const { landingColor, landingPublic, modalOpen, setModalOpen, setSuccessMessage } = useGameStore();
     const [ nodes, setNodes, onNodesChange ] = useNodesState<any>(initialNodes);
     const [ edges, setEdges ] = useEdgesState<any>(initialEdges);
     const [ nodeIdCounter, setNodeIdCounter ] = useState(initialNodes.length + 1);
     const [ edgeModalOpen, setEdgeModalOpen ] = useState(false);
-    const [ nodeModalOpen, setNodeModalOpen ] = useState(false);
     const [ alertModalOpen, setAlertModalOpen ] = useState(false);
     const [ edgeToDelete, setEdgeToDelete ] = useState<any>(null);
     const [ nodeToDelete, setNodeToDelete ] = useState<any>(null);
     const [ alertMessage, setAlertMessage ] = useState('');
+    const [ alertType, setAlertType ] = useState<'warning' | 'success'>('warning');
     const [ connectionStart, setConnectionStart ] = useState({ x: 0, y: 0 });
     const [ mousePosition, setMousePosition ] = useState({ x: 0, y: 0 });
     const [ isConnecting, setIsConnecting ] = useState(false);
@@ -1005,9 +982,9 @@ const GameplayScreen = () => {
         const change = baseChange * connectedEdgesCount * trafficFactor * efficiencyFactor;
         
         if (nodeType === 'Export') {
-            return Math.min(change, node.data.supply);  // ไม่ให้ลดเกินกว่า supply ที่มี
+            return Math.min(change, node.data.supply);
         } else {
-            return Math.min(change, node.data.maxSupply - node.data.supply);  // ไม่ให้เพิ่มเกิน maxSupply
+            return Math.min(change, node.data.maxSupply - node.data.supply);
         }
     }, [nodes, edges, getConnectedEdgesCount, calculateEfficiency]);
 
@@ -1027,6 +1004,7 @@ const GameplayScreen = () => {
     
         if (distance > 1500) {
             setAlertMessage('Connection distance exceeds ' + distance.toFixed(0) + '/1500 units. Unable to connect nodes.');
+            setAlertType('warning');
             setAlertModalOpen(true);
             return;
         }
@@ -1053,8 +1031,19 @@ const GameplayScreen = () => {
             );
             if (existingEdge && sourceNode.data.nodeType === 'Export') {
                 setAlertMessage('Export node can only have one connection.');
+                setAlertType('warning');
                 setAlertModalOpen(true);
                 return;
+            }
+
+            if (targetNode.data.nodeType === 'Import') {
+                const existingImportEdge = edges.find(edge => edge.target === targetNode.id);
+                if (existingImportEdge) {
+                    setAlertMessage('Import node can only have one connection.');
+                    setAlertType('warning');
+                    setAlertModalOpen(true);
+                    return;
+                }
             }
 
             if (sourceNode.data.nodeType === 'Spaceship' || targetNode.data.nodeType === 'Spaceship') {
@@ -1064,6 +1053,7 @@ const GameplayScreen = () => {
                 );
                 if (connectedEdges.length >= 4) {
                     setAlertMessage('Spaceship can have a maximum of 4 connections.');
+                    setAlertType('warning');
                     setAlertModalOpen(true);
                     return;
                 }
@@ -1118,6 +1108,7 @@ const GameplayScreen = () => {
             });
         } else {
             setAlertMessage('Invalid connection.\nCheck the rules for connecting nodes.');
+            setAlertType('warning');
             setAlertModalOpen(true);
         }
     }, [nodes, edges, setEdges, calculateTraffic, setNodes, getConnectedEdgesCount, calculateResourceChange]);
@@ -1128,7 +1119,8 @@ const GameplayScreen = () => {
     }, []);
 
     const handleCancelNodeDelete = useCallback(() => {
-        setNodeModalOpen(false);
+        setModalOpen(false);
+        setSuccessMessage('');
         setNodeToDelete(null);
     }, []);
 
@@ -1149,7 +1141,7 @@ const GameplayScreen = () => {
             setNodes((nds) => nds.filter((n) => n.id !== nodeToDelete.id));
             setEdges((eds) => eds.filter((e) => e.source !== nodeToDelete.id && e.target !== nodeToDelete.id));
         }
-        setNodeModalOpen(false);
+        setModalOpen(false);
         setNodeToDelete(null);
     }, [nodeToDelete, setNodes, setEdges]);
 
@@ -1162,7 +1154,7 @@ const GameplayScreen = () => {
     const onNodeClick = useCallback((event: React.MouseEvent, node: Node<NodeData>) => {
         if (!node.data.isTemporary) {
             setNodeToDelete(node);
-            setNodeModalOpen(true);
+            setModalOpen(true);
         }
     }, []);
     
@@ -1259,8 +1251,8 @@ const GameplayScreen = () => {
 
     const createTemporaryNode = (nodeType: string) => {
         const newNodeId = String(nodeIdCounter + 1);
-        const centerX = window.innerWidth / 2;
-        const centerY = window.innerHeight / 2;
+        const centerX = 0;
+        const centerY = 100;
         
         const nodeCategory = nodeType.includes('Import') ? 'Import' : 'Export';
         const resourceType = nodeType.replace('Import', '').replace('Export', '');
@@ -1363,7 +1355,7 @@ const GameplayScreen = () => {
                                     multiSelectionKeyCode={null}
                                     selectionKeyCode={null}
                                 >
-                                    <Controls showInteractive={false} position='top-right' />
+                                    <Controls showInteractive={false} position='top-right' className='text-black pt-[30px] sm:pt-[40px]' />
                                     <Background variant={BackgroundVariant.Dots} gap={10} size={1} />
                                     {isConnecting && (
                                         <DistanceIndicator
@@ -1381,7 +1373,7 @@ const GameplayScreen = () => {
                                     message='คุณต้องการลบการเชื่อมต่อนี้ใช่หรือไม่?'
                                 />
                                 <CustomModal
-                                    isOpen={nodeModalOpen}
+                                    isOpen={modalOpen}
                                     onClose={handleCancelNodeDelete}
                                     onDelete={handleConfirmNodeDelete}
                                     node={nodeToDelete}
@@ -1392,6 +1384,7 @@ const GameplayScreen = () => {
                                     isOpen={alertModalOpen}
                                     onClose={handleAlertModal}
                                     message={alertMessage}
+                                    type={alertType}
                                 />
                             </div>
                         </div>

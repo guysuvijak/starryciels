@@ -5,9 +5,9 @@ import { useGameStore } from '@/stores/useStore';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 import SpinningLoader from '@/components/(element)/SpinningLoader';
-import ProfileScreen from '@/components/(game)/(main)/ProfileScreen';
-import GameplayScreen from '@/components/(game)/(main)/GameplayScreen';
-import SpaceshipScreen from '@/components/(game)/(main)/SpaceshipScreen';
+import ProfileScreen from '@/components/(game)/ProfileScreen';
+import GameplayScreen from '@/components/(game)/GameplayScreen';
+import SpaceshipScreen from '@/components/(game)/SpaceshipScreen';
 
 const Game = () => {
     const wallet = useWallet();

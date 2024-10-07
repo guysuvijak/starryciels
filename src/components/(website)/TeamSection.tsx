@@ -50,7 +50,7 @@ const TeamSection = () => {
                 >
                     {t('team-description')}
                 </motion.p>
-                <div className='flex items-center justify-center gap-6 flex-col sm:flex-row sm:flex-wrap'>
+                <div className='flex items-center justify-center gap-4 flex-col sm:flex-row sm:flex-wrap'>
                     {data.map(({ id, name, image, position, role, discord, href }) => (
                         <motion.div 
                             key={id}

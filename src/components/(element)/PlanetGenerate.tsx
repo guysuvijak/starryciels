@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+
+import { PlanetGenerateProps } from '@/types/(components)/Element';
 import SpinningLoader from '@/components/(element)/SpinningLoader';
 
 const baseChangeColor = async (color: string): Promise<string> => {
@@ -31,7 +33,7 @@ const baseRingsChangeColor = async (color: string, rings: string): Promise<strin
     }
 };
 
-const PlanetGenerate = React.memo(({ color, rings, cloud, surface} : { color: string, rings: string, cloud: string, surface: string}) => {
+const PlanetGenerate: React.FC<PlanetGenerateProps> = React.memo(({ color, rings, cloud, surface }) => {
     const [ isLoading, setIsLoading ] = useState(true);
     const [ baseSvg, setBaseSvg ] = useState<string>('');
     const [ baseRingSvg, setBaseRingSvg ] = useState<string>('');

@@ -43,7 +43,11 @@ export const useGameStore = create<GameState>()(
             landingColor: '',
             setLandingColor: (landingColor) => set({ landingColor }),
             nicknameProfile: '',
-            setNicknameProfile: (nicknameProfile) => set({ nicknameProfile })
+            setNicknameProfile: (nicknameProfile) => set({ nicknameProfile }),
+            modalOpen: false,
+            setModalOpen: (modalOpen) => set({ modalOpen }),
+            successMessage: '',
+            setSuccessMessage: (successMessage) => set({ successMessage })
         }),
         {
             name: 'game-storage',
@@ -68,7 +72,7 @@ export const useResourceStore = create<ResourceState>((set) => ({
                 set({ ore, fuel, food });
             }
         } catch (error) {
-            console.error("Error fetching resources:", error);
+            console.error('Error fetching resources:', error);
         }
     },
 }));

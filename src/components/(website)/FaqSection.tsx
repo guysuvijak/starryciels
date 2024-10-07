@@ -20,7 +20,7 @@ const FaqSection = () => {
         <section className='py-20 px-4'>
             <div className='max-w-4xl mx-auto'>
                 <HeaderText title={t('cm-header')} />
-                <div className='space-y-6'>
+                <div className='space-y-4'>
                     {faqs.map(({ question, answer }, index) => (
                         <motion.div 
                             key={index}

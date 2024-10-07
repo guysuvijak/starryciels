@@ -9,7 +9,7 @@ import { useGameStore } from '@/stores/useStore';
 require('@solana/wallet-adapter-react-ui/styles.css');
 
 import { sendWebhookDiscordProfile } from '@/utils/discord-webhook';
-import { ProfileDataProps } from '@/types/(game)/Profile';
+import { ProfileDataProps } from '@/types/(components)/Game';
 import ParallaxEffect from '@/components/(element)/ParallaxEffect';
 import SpinningLoader from '@/components/(element)/SpinningLoader';
 import { CheckProfile, CreateProfile } from '@/metaplex/profile';

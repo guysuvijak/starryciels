@@ -1,23 +1,37 @@
 'use client'
+import React, { useEffect } from 'react';
 import Image from 'next/image';
-import { useMemo } from 'react';
-import { usePathname } from 'next/navigation';
-import { useRouter } from 'next-nprogress-bar';
-import { useTranslations } from 'next-intl';
+import { useWallet } from '@solana/wallet-adapter-react';
 
-import MenuSetting from '@/components/(game)/MenuSetting';
+import { useResourceStore } from '@/stores/useStore';
 
 const Navbar = () => {
-    const router = useRouter();
-    const pathname = usePathname();
-    const t = useTranslations('GameFooter');
+    const wallet = useWallet();
+    const { ore, fuel, food, fetchResources } = useResourceStore();
+
+    useEffect(() => {
+        if (wallet.publicKey) {
+            fetchResources(wallet.publicKey.toString());
+        }
+    }, [wallet.publicKey, fetchResources]);
+
+    const CustomResource = ({ name, amount }: { name: string, amount: number }) => {
+        return (
+            <div className='flex w-[100%] mr-2 sm:mr-4 justify-center items-center bg-theme-bg-0 text-theme-title rounded-md px-2 border-2 border-theme-border'>
+                <Image src={`/assets/icons/resource-${name}.svg`} alt={`icon-${name}`} width={28} height={28} className='mr-2 w-[20px] sm:w-[24px] h-auto' />
+                <p className='text-[14px] sm:text-[18px]'>{amount}</p>
+            </div>
+        )
+    };
 
     return (
-        <div className='flex top-0 left-0 right-0 justify-between relative items-center w-full p-2 lg:p-4'>
-            <div className='flex sm:w-full items-center justify-end'>
-                <div className='hidden sm:flex'>
+        <div className='flex w-full absolute z-50'>
+            <div className='flex m-2 w-full'>
+                <div className='flex w-full sm:py-1'>
+                    <CustomResource name='ore' amount={ore} />
+                    <CustomResource name='fuel' amount={fuel} />
+                    <CustomResource name='food' amount={food} />
                 </div>
-                <MenuSetting />
             </div>
         </div>
     )

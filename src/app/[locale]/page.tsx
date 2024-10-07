@@ -3,7 +3,7 @@ import ParallaxEffect from '@/components/(element)/ParallaxEffect';
 import Navbar from '@/components/(website)/Navbar';
 import IntroSection from '@/components/(website)/IntroSection';
 import GameplayDemo from '@/components/(website)/GameplayDemo';
-import PlanetNft from '@/components/(website)/PlanetNft';
+import Nft from '@/components/(website)/Nft';
 import InGameResource from '@/components/(website)/InGameResource';
 import CoreTechnology from '@/components/(website)/CoreTechnology';
 import TeamSection from '@/components/(website)/TeamSection';
@@ -19,7 +19,7 @@ const Index = () => {
                 <div className='relative'>
                     <IntroSection />
                     <GameplayDemo />
-                    <PlanetNft />
+                    <Nft />
                     <InGameResource />
                     <CoreTechnology />
                     <TeamSection />
