@@ -11,7 +11,7 @@ import {
 import { motion } from 'framer-motion';
 import { Tooltip } from 'react-tooltip';
 import { FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import { useGameStore } from '@/stores/useStore';
+import { useGameStore, useResourceStore } from '@/stores/useStore';
 import { useNodeStore } from '@/stores/nodeStore';
 import useWindowSize from '@/hook/useWindowSize';
 
@@ -117,6 +117,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
 
 const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any) => {
     const wallet = useWallet();
+    const { fetchResources } = useResourceStore();
     const updateNode = useNodeStore(state => state.updateNode);
     const { profilePublic, setGameMenu } = useGameStore();
     const [ isSend, setIsSend ] = useState(false);
@@ -160,6 +161,9 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                     }
                 });
             }
+            if (wallet.publicKey) {
+                await fetchResources(wallet.publicKey.toString());
+            }
         } catch(err) {
             console.error(err);
         } finally {
@@ -175,7 +179,11 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                     <p className='font-bold'>{node?.data.displayName} (#{node?.id})</p>
                     <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={24} height={24} className='mx-1 w-[24px] h-[24px]' />} {type}</p>
                     {nodeType !== 'Spaceship' &&
-                        <p>Supply: {supply.toFixed(2)}/{maxSupply}</p>
+                        <div className='flex text-theme-title'>
+                            <p>Supply:</p>
+                            <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>
+                            <p>/{maxSupply}</p>
+                        </div>
                     }
                 </div>
                 <div className='flex justify-end space-x-2'>
@@ -445,7 +453,11 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
         <p><strong>{displayName} (#{id})</strong></p>
         <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={18} height={18} className='mx-1 w-[18px] h-[18px]' />} {type}</p>
         {nodeType !== 'Spaceship' &&
-            <p>Supply: {supply.toFixed(2)}/{maxSupply}</p>
+            <div className='flex text-theme-title'>
+                <p>Supply: </p>
+                <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>
+                <p>/{maxSupply}</p>
+            </div>
         }
       </div>
     ), [id, nodeType, displayName, iconProps.Icon, type, supply, maxSupply, node.connectedNodes]);

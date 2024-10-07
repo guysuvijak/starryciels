@@ -26,3 +26,11 @@ export interface GameState {
     nicknameProfile: string | null;
     setNicknameProfile: (nicknameProfile) => void;
 };
+
+export interface ResourceState {
+    ore: number;
+    fuel: number;
+    food: number;
+    updateResource: (type: 'ore' | 'fuel' | 'food', amount: number) => void;
+    fetchResources: (publicKey: string) => Promise<void>;
+};

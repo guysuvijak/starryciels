@@ -1,29 +1,20 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Image from 'next/image';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { AiFillSetting } from 'react-icons/ai';
 
-import { CheckProfile } from '@/metaplex/profile';
+import { useResourceStore } from '@/stores/useStore';
 
 const Navbar = () => {
     const wallet = useWallet();
-    const [ resourceData, setResourceData ] = useState({ ore: 0, fuel: 0, food: 0 });
+    const { ore, fuel, food, fetchResources } = useResourceStore();
 
     useEffect(() => {
-        getResourceData();
-    }, []);
-
-    const getResourceData = async () => {
-        const response = await CheckProfile(String(wallet.publicKey));
-        if (response && response[0]?.attributes?.attributeList) {
-            const attributeList = response[0].attributes.attributeList;
-            const ore = Number(attributeList.find(attr => attr.key === 'ore')?.value) || 0;
-            const fuel = Number(attributeList.find(attr => attr.key === 'fuel')?.value) || 0;
-            const food = Number(attributeList.find(attr => attr.key === 'food')?.value) || 0;
-            setResourceData({ ore, fuel, food });
+        if (wallet.publicKey) {
+            fetchResources(wallet.publicKey.toString());
         }
-    };
+    }, [wallet.publicKey, fetchResources]);
 
     const CustomResource = ({ name, amount }: { name: string, amount: number }) => {
         return (
@@ -38,9 +29,9 @@ const Navbar = () => {
         <div className='flex w-full absolute z-50'>
             <div className='flex m-2 w-full'>
                 <div className='flex w-full sm:py-1'>
-                    <CustomResource name='ore' amount={resourceData.ore} />
-                    <CustomResource name='fuel' amount={resourceData.fuel} />
-                    <CustomResource name='food' amount={resourceData.food} />
+                    <CustomResource name='ore' amount={ore} />
+                    <CustomResource name='fuel' amount={fuel} />
+                    <CustomResource name='food' amount={food} />
                 </div>
                 <button onClick={() => {}} className='p-1 sm:p-2 bg-theme-button hover:bg-theme-button-h rounded-full'>
                     <AiFillSetting size={26} className='text-theme-title w-[22px] sm:w-[26px] h-auto' />
