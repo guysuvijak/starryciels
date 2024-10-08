@@ -22,14 +22,12 @@ StarryCiels is a Web3 sandbox on-chain game built on the Solana blockchain. Expl
 
 ### Steps
 1. Clone the repository:
-1.1. git clone https://github.com/yourusername/starryciels.git
-1.2. cd starryciels
-2. Install dependencies:
-2.1 `npm install` or `pnpm install` or `yarn add`
-3. Set up environment variables:
-Create a `.env` file in the root directory and add necessary environment variables (refer to `.env.example`).
-4. Build the project:
-4.1 `npm run dev` or `pnpm run dev` or `yarn dev`
+2. git clone https://github.com/yourusername/starryciels.git
+3. cd starryciels
+4. Install dependencies:
+5. `npm install` or `pnpm install` or `yarn add`
+6. Set up environment variables: Create a `.env` file in the root directory and add necessary environment variables (refer to `.env.example`).
+7. Build the project: `npm run dev` or `pnpm run dev` or `yarn dev`
 
 ## How to Use
 1. Start the development server:
