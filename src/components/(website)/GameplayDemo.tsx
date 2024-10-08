@@ -13,7 +13,7 @@ const GameplayDemo = () => {
                     <div className='w-[640px] h-[360px]'>
                         <iframe
                             className='w-full h-full rounded-lg'
-                            src='https://www.youtube.com/embed/H50Vkei4nD0'
+                            src='https://www.youtube.com/embed/1q5U5ULUcA8'
                             title='StarryCiels Demo'
                             allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
                             allowFullScreen
