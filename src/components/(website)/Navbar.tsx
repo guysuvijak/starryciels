@@ -38,12 +38,12 @@ const Navbar = () => {
 };
 
 const Logo: React.FC<{ title: string }> = ({ title }) => (
-    <div className='flex-shrink-0'>
+    <button className='flex-shrink-0'>
         <div className='w-32 h-8 rounded flex items-center justify-center text-white font-bold'>
             <Image src='/assets/website/logo.webp' alt='logo' width={40} height={40} draggable={false} priority />
             <p className='invisible md:visible'>{title}</p>
         </div>
-    </div>
+    </button>
 );
 
 const EnterButton: React.FC<EnterButtonProps> = ({ onClick, isEnter, buttonText, loadingText }) => (

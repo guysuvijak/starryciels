@@ -51,8 +51,8 @@
         "nft-profile-description": "Represents the player in the game, used to store various data on-chain.",
         "nft-planet-header": "Planet",
         "nft-planet-description": "Harvest resources from planets and collect planets with different attributes.",
-        "nft-spacecraft-header": "Spacecraft",
-        "nft-spacecraft-description": "One of the systems that will make gameplay more dimensional, diverse, and challenging.",
+        "nft-spaceship-header": "spaceship",
+        "nft-spaceship-description": "One of the systems that will make gameplay more dimensional, diverse, and challenging.",
         "nft-treasure-header": "Treasure Box",
         "nft-treasure-description": "Obtained through gameplay, with randomized rewards.",
         "ig-header": "In-Game Resource",
@@ -140,6 +140,23 @@
         "planet-tooltip": "- Planet: {planet} (Random)",
         "attributes-header": "[ All Attributes List ]",
         "attributes-description": "Minting new planet are randomizing all with an equal chance."
-
+    },
+    "Game": {
+        "modal-cancel-button": "Cancel",
+        "modal-enter-button": "Enter Ship",
+        "modal-destroy-button": "Destroy",
+        "modal-send-button": "Send",
+        "modal-type-title": "Type: ",
+        "modal-supply-title": "Supply:",
+        "indicator-units-title": "units",
+        "tooltip-type-title": "Type: ",
+        "tooltip-supply-title": "Supply: ",
+        "alert-distance-exceed": "'Connection distance exceeds {distance}/1500 units. Unable to connect nodes.'",
+        "alert-export-one": "Export node can only have one connection.",
+        "alert-import-one": "Import node can only have one connection.",
+        "alert-spaceship-four": "Spaceship can have a maximum of 4 connections.",
+        "alert-invalid-connect": "Invalid connection.\nCheck the rules for connecting nodes.",
+        "no-landing": "No Landing Planet",
+        "remove-connect": "Do you want to remove this connection?"
     }
 }

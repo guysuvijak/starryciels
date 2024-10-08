@@ -18,7 +18,8 @@ const Roadmap = () => {
                 'Planet NFT (Devnet)',
                 'Blockchain Integration',
                 'Discord Integration',
-                'Join Radar Hackathon'
+                'Join Radar Hackathon',
+                'Public Open Source'
             ]
         },
         {
@@ -27,12 +28,12 @@ const Roadmap = () => {
             title: 'Beta Testing & Community Building',
             items: [
                 'Gameplay Beta Version (Devnet)',
-                'Spacecraft NFT (Devnet)',
+                'Spaceship NFT (Devnet)',
                 'Community Engagement',
                 'CEO Branding',
                 'Explore the Universe',
                 'Raise equity round',
-                'Pre-sale Planet, Spacecraft NFT'
+                'Pre-sale Planet, Spaceship NFT'
             ]
         },
         {
@@ -41,11 +42,12 @@ const Roadmap = () => {
             title: 'Mainnet Launch & Token Release',
             items: [
                 'Launch Gameplay Version 1.0 (Mainnet)',
-                'Profile, Planet, Spacecraft NFT (Mainnet)',
+                'Profile, Planet, Spaceship NFT (Mainnet)',
                 'Treasure Box NFT (Mainnet)',
                 'Engagement Campaign',
                 'Release Token STCT',
-                'Marketing Push'
+                'Marketing Push',
+                'In-game Marketplace'
             ]
         },
         {
@@ -55,7 +57,7 @@ const Roadmap = () => {
             items: [
                 'Partnership Development',
                 'Community Competitions',
-                'Spacecraft Upgrades',
+                'Spaceship Upgrades',
                 'STCT Token Staking',
                 'Sponsor Prize Hackathon on Solana (Q3-Q4 2025)',
                 'Course Build Game Web 3.0 with Metaplex'
@@ -68,7 +70,10 @@ const Roadmap = () => {
             items: [
                 'Full Game Launch',
                 'Governance & DAO System',
-                'Multiplayer System (socket.io)'
+                'Multiplayer System (socket.io)',
+                'Clan System',
+                'Scholarship System',
+                'More Web2 Integration'
             ]
         }
     ];

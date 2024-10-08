@@ -38,9 +38,9 @@ const Nft = () => {
             description: t('nft-planet-description')
         },
         {
-            name: t('nft-spacecraft-header'),
-            image: '/assets/website/nft-spacecraft.webp',
-            description: t('nft-spacecraft-description')
+            name: t('nft-spaceship-header'),
+            image: '/assets/website/nft-spaceship.webp',
+            description: t('nft-spaceship-description')
         },
         {
             name: t('nft-treasure-header'),

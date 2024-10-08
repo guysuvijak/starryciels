@@ -23,6 +23,7 @@ import { UpdateProfile } from '@/metaplex/profile';
 import AlertModal from '@/components/(element)/AlertModal';
 import { useWallet } from '@solana/wallet-adapter-react';
 import SpinningLoader from '@/components/(element)/SpinningLoader';
+import { useTranslations } from 'next-intl';
 
 interface NodeContextType {
     nodes: Node<NodeData>[];
@@ -118,6 +119,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, message }: any) => {
 
 const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any) => {
     const wallet = useWallet();
+    const t = useTranslations('Game');
     const { fetchResources } = useResourceStore();
     const updateNode = useNodeStore(state => state.updateNode);
     const { profilePublic, setGameMenu, successMessage, setSuccessMessage } = useGameStore();
@@ -180,10 +182,10 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
             <div className='bg-theme-bg-0 p-6 rounded-lg z-50 border-1 border-theme-border'>
                 <div className='mb-4 text-theme-title text-[16px] sm:text-[18px]'>
                     <p className='font-bold'>{node?.data.displayName} (#{node?.id})</p>
-                    <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={24} height={24} className='mx-1 w-[24px] h-[24px]' />} {type}</p>
+                    <p className='flex'>{t('modal-type-title')}{iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={24} height={24} className='mx-1 w-[24px] h-[24px]' />} {type}</p>
                     {nodeType !== 'Spaceship' &&
                         <div className='flex text-theme-title'>
-                            <p>Supply:</p>
+                            <p>{t('modal-supply-title')}</p>
                             {nodeType === 'Export' && <p className={`ml-1 ${supply <= 0 && 'text-theme-alert'}`}>{supply.toFixed(2)}</p>}
                             {nodeType === 'Import' && <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>}
                             <p>/{maxSupply}</p>
@@ -200,14 +202,14 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                         className='px-4 py-2 text-white bg-theme-button-50 rounded hover:bg-theme-button-d'
                         onClick={onClose}
                     >
-                        Cancel
+                        {t('modal-cancel-button')}
                     </button>
                     {nodeType === 'Spaceship' &&
                         <button
                             className='px-4 py-2 bg-theme-button text-theme-button-t rounded hover:bg-theme-button-h'
                             onClick={() => setGameMenu('spaceship')}
                         >
-                            Enter Ship
+                            {t('modal-enter-button')}
                         </button>
                     }
                     {visibleDelete && 
@@ -217,7 +219,7 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                             disabled={!canDelete}
                             data-tooltip-id={!canDelete ? 'tooltip-delete' : ''}
                         >
-                            Destroy
+                            {t('modal-destroy-button')}
                         </button>
                     }
                     {nodeType === 'Import' &&
@@ -227,7 +229,7 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
                             disabled={!checkConnectSpaceship || isSend}
                             data-tooltip-id={!checkConnectSpaceship ? 'tooltip-send' : ''}
                         >
-                            {isSend ? <SpinningLoader button /> : 'Send'}
+                            {isSend ? <SpinningLoader button /> : t('modal-send-button')}
                         </button>
                     }
                     <Tooltip id={'tooltip-delete'} content={'Disconnect all node first'} />
@@ -275,23 +277,23 @@ const FloatingNumber: React.FC<FloatingNumberProps> = React.memo(({ value }) => 
     if (displayValue === 0) return null;
   
     return (
-      <div
-        style={{
-          position: 'absolute',
-          top: `${position}px`,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          opacity: 1 - Math.abs(position) / 30,
-          color: 'lime',
-          fontWeight: 'bold',
-          fontSize: '20px',
-          pointerEvents: 'none'
-        }}
-      >
-        +{displayValue.toFixed(2)}
-      </div>
-    );
-  });
+        <div
+            style={{
+                position: 'absolute',
+                top: `${position}px`,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                opacity: 1 - Math.abs(position) / 30,
+                color: 'lime',
+                fontWeight: 'bold',
+                fontSize: '20px',
+                pointerEvents: 'none'
+            }}
+        >
+            +{displayValue.toFixed(2)}
+        </div>
+    )
+});
 
 interface DistanceIndicatorProps {
     sourceX: number;
@@ -306,9 +308,10 @@ interface ClosestNode {
 }
 
 const DistanceIndicator: React.FC<DistanceIndicatorProps> = ({ sourceX, sourceY, targetX, targetY }) => {
+    const t = useTranslations('Game');
     const transform = useStore((state) => state.transform);
     const { getNodes } = useReactFlow();
-    const [tX, tY, tScale] = transform;
+    const [ tX, tY, tScale ] = transform;
     
     const sourceFlowX = (sourceX - tX) / tScale;
     const sourceFlowY = (sourceY - tY) / tScale;
@@ -356,7 +359,7 @@ const DistanceIndicator: React.FC<DistanceIndicatorProps> = ({ sourceX, sourceY,
                 zIndex: 1000
             }}
         >
-            {Math.round(distance)} units
+            {Math.round(distance)} {t('indicator-units-title')}
         </div>
     );
 };
@@ -371,6 +374,7 @@ interface CustomNodeProps {
 }
 
 const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, connectedEdgesCount, efficiency, confirmNodeTemporary, cancelNodeTemporary }) => {
+    const t = useTranslations('Game');
     const node: any = useNodeStore(state => state.nodes[id]);
     const updateNode = useNodeStore(state => state.updateNode);
     const [ isHovered, setIsHovered ] = useState(false);
@@ -432,67 +436,67 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
     }, [id, nodeType, maxSupply, supply, isConnected, connectedEdgesCount, efficiency, updateNode, isConnectSpaceship]);
   
     const nodeSize = useMemo(() => {
-      const sizes: any = { Small: 40, Medium: 60, Large: 80 };
-      return sizes[size];
+        const sizes: any = { Small: 40, Medium: 60, Large: 80 };
+        return sizes[size];
     }, [size]);
   
     const iconProps = useMemo(() => {
-      let Icon: string;
-      switch(type) {
-        case 'Ore':
-          Icon = 'ore';
-          break;
-        case 'Fuel':
-          Icon = 'fuel';
-          break;
-        case 'Food':
-          Icon = 'food';
-          break;
-        default:
-          Icon = '';
-          break;
-      }
-      return { Icon };
+        let Icon: string;
+        switch(type) {
+            case 'Ore':
+                Icon = 'ore';
+                break;
+            case 'Fuel':
+                Icon = 'fuel';
+                break;
+            case 'Food':
+                Icon = 'food';
+                break;
+            default:
+                Icon = '';
+                break;
+        }
+        return { Icon };
     }, [type]);
   
     const tooltipContent = useMemo(() => (
-      <div>
-        <p><strong>{displayName} (#{id})</strong></p>
-        <p className='flex'>Type: {iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={18} height={18} className='mx-1 w-[18px] h-[18px]' />} {type}</p>
-        {nodeType !== 'Spaceship' &&
-            <div className='flex text-white'>
-                <p>Supply: </p>
-                {nodeType === 'Export' && <p className={`ml-1 ${supply <= 0 && 'text-theme-alert'}`}>{supply.toFixed(2)}</p>}
-                {nodeType === 'Import' && <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>}
-                <p>/{maxSupply}</p>
-            </div>
-        }
-      </div>
+        <div>
+            <p><strong>{displayName} (#{id})</strong></p>
+            <p className='flex'>{t('tooltip-type-title')}{iconProps.Icon !== '' && <Image src={`/assets/icons/resource-${iconProps.Icon}.svg`} alt={`icon-${iconProps.Icon}`} width={18} height={18} className='mx-1 w-[18px] h-[18px]' />} {type}</p>
+            {nodeType !== 'Spaceship' &&
+                <div className='flex text-white'>
+                    <p>{t('tooltip-supply-title')}</p>
+                    {nodeType === 'Export' && <p className={`ml-1 ${supply <= 0 && 'text-theme-alert'}`}>{supply.toFixed(2)}</p>}
+                    {nodeType === 'Import' && <p className={`ml-1 ${supply <= 0 ? 'text-theme-subtitle' : supply.toFixed(0) === maxSupply.toFixed(0) ? 'text-theme-alert' : ''}`}>{supply.toFixed(2)}</p>}
+                    <p>/{maxSupply}</p>
+                </div>
+            }
+        </div>
     ), [id, nodeType, displayName, iconProps.Icon, type, supply, maxSupply, node.connectedNodes]);
   
     const renderHandles = useCallback(() => {
         const commonStyle = {
-          width: 12,
-          height: 12,
-          borderColor: '#000000',
-          borderWidth: 1
+            width: 12,
+            height: 12,
+            borderColor: '#000000',
+            borderWidth: 1
         };
         
         if (nodeType === 'Spaceship' && Array.isArray(handlePositions.target)) {
-          return handlePositions.target.map((position: any) => (
-            <Handle 
-              key={position}
-              type='target' 
-              position={position} 
-              id={`${position}-handle`}
-              style={{
-                ...commonStyle,
-                backgroundColor: '#dadada',
-                [position === Position.Left ? 'left' : position === Position.Right ? 'right' : '']: -10,
-                [position === Position.Top ? 'top' : position === Position.Bottom ? 'bottom' : '']: -10
-              }} 
-            />
-          ));
+            return handlePositions.target.map((position: any) => (
+                <Handle 
+                    key={position}
+                    type='target' 
+                    position={position} 
+                    id={`${position}-handle`}
+                    style={{
+                        ...commonStyle,
+                        backgroundColor: '#dadada',
+                        [position === Position.Left ? 'left' : position === Position.Right ? 'right' : '']: -10,
+                        [position === Position.Top ? 'top' : position === Position.Bottom ? 'bottom' : '']: -10
+                    }} 
+                />
+            ));
         }
       
         return (
@@ -510,19 +514,19 @@ const CustomNode: React.FC<CustomNodeProps> = React.memo(({ id, isConnected, con
                     />
                 )}
                 {(nodeType === 'Import') && handlePositions.target && !Array.isArray(handlePositions.target) && (
-                <Handle 
-                    type='target' 
-                    position={handlePositions.target} 
-                    id={`${handlePositions.target}-handle`}
-                    style={{ 
-                        ...commonStyle,
-                        left: -6,
-                        backgroundColor: '#00ff15'
-                    }} 
-                />
+                    <Handle 
+                        type='target' 
+                        position={handlePositions.target} 
+                        id={`${handlePositions.target}-handle`}
+                        style={{ 
+                            ...commonStyle,
+                            left: -6,
+                            backgroundColor: '#00ff15'
+                        }} 
+                    />
                 )}
             </>
-        );
+        )
     }, [nodeType, handlePositions]);
   
     return (
@@ -683,7 +687,7 @@ const CustomEdge: React.FC<CustomEdgeProps> = ({
     sourceHandle,
     targetHandle,
     style = {},
-    data,
+    data
 }) => {
     const [edgePath] = getSmoothStepPath({
         sourceX,
@@ -770,8 +774,8 @@ const snapToGrid = (position: { x: number; y: number }): { x: number; y: number 
 };
 
 const doEdgesIntersect = (edge1: number[], edge2: number[]): boolean => {
-    const [x1, y1, x2, y2] = edge1;
-    const [x3, y3, x4, y4] = edge2;
+    const [ x1, y1, x2, y2 ] = edge1;
+    const [ x3, y3, x4, y4 ] = edge2;
   
     const det = (x2 - x1) * (y4 - y3) - (x4 - x3) * (y2 - y1);
     if (det === 0) return false;
@@ -860,6 +864,7 @@ const generateRandomExportNodes = (existingNodes: Node<NodeData>[], startId: num
 };
 
 const GameplayScreen = () => {
+    const t = useTranslations('Game');
     const { widowWidth, windowHeight } = useWindowSize();
     const { landingColor, landingPublic, modalOpen, setModalOpen, setSuccessMessage } = useGameStore();
     const [ nodes, setNodes, onNodesChange ] = useNodesState<any>(initialNodes);
@@ -1009,7 +1014,7 @@ const GameplayScreen = () => {
         );
     
         if (distance > 1500) {
-            setAlertMessage('Connection distance exceeds ' + distance.toFixed(0) + '/1500 units. Unable to connect nodes.');
+            setAlertMessage(t('alert-distance-exceed', { distance: distance.toFixed(0) }));
             setAlertType('warning');
             setAlertModalOpen(true);
             return;
@@ -1036,7 +1041,7 @@ const GameplayScreen = () => {
                 edge.source === sourceNode.id && sourceNode.data.nodeType === 'Export'
             );
             if (existingEdge && sourceNode.data.nodeType === 'Export') {
-                setAlertMessage('Export node can only have one connection.');
+                setAlertMessage(t('alert-export-one'));
                 setAlertType('warning');
                 setAlertModalOpen(true);
                 return;
@@ -1045,7 +1050,7 @@ const GameplayScreen = () => {
             if (targetNode.data.nodeType === 'Import') {
                 const existingImportEdge = edges.find(edge => edge.target === targetNode.id);
                 if (existingImportEdge) {
-                    setAlertMessage('Import node can only have one connection.');
+                    setAlertMessage(t('alert-import-one'));
                     setAlertType('warning');
                     setAlertModalOpen(true);
                     return;
@@ -1058,7 +1063,7 @@ const GameplayScreen = () => {
                     edge.source === spaceshipNode.id || edge.target === spaceshipNode.id
                 );
                 if (connectedEdges.length >= 4) {
-                    setAlertMessage('Spaceship can have a maximum of 4 connections.');
+                    setAlertMessage(t('alert-spaceship-four'));
                     setAlertType('warning');
                     setAlertModalOpen(true);
                     return;
@@ -1113,7 +1118,7 @@ const GameplayScreen = () => {
                 return updatedEdges;
             });
         } else {
-            setAlertMessage('Invalid connection.\nCheck the rules for connecting nodes.');
+            setAlertMessage(t('alert-invalid-connect'));
             setAlertType('warning');
             setAlertModalOpen(true);
         }
@@ -1251,7 +1256,7 @@ const GameplayScreen = () => {
 
     React.useEffect(() => {
         nodes.forEach(node => {
-          updateNode(node.id, node.data);
+            updateNode(node.id, node.data);
         });
     }, []);
 
@@ -1331,7 +1336,7 @@ const GameplayScreen = () => {
             <NodeContext.Provider value={{ nodes }}>
                 <div style={{ width: '100vw', height: '100vh' }} onMouseMove={onMouseMove}>
                     {!landingPublic ? (
-                        <div>No Landing Planet</div>
+                        <div>{t('no-landing')}</div>
                     ) : (
                         <>
                         <Navbar />
@@ -1376,7 +1381,7 @@ const GameplayScreen = () => {
                                     isOpen={edgeModalOpen}
                                     onClose={handleCancelEdgeDelete}
                                     onConfirm={handleConfirmEdgeDelete}
-                                    message='คุณต้องการลบการเชื่อมต่อนี้ใช่หรือไม่?'
+                                    message={t('remove-connect')}
                                 />
                                 <CustomModal
                                     isOpen={modalOpen}

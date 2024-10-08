@@ -51,8 +51,8 @@
         "nft-profile-description": "เป็นตัวแทนของผู้เล่นในเกม ใช้ในการเก็บข้อมูลต่าง ๆ",
         "nft-planet-header": "ดาวเคราะห์",
         "nft-planet-description": "เก็บเกี่ยวทรัพยากรได้จากดาวเคราะห์ และสะสมดาวเคราะห์ที่คุณลักษณะแตกต่างกันไป",
-        "nft-spacecraft-header": "ยานอวกาศ",
-        "nft-spacecraft-description": "หนึ่งในระบบที่จะทำให้การเล่นมีมิติ, หลากหลาย และท้าทายมากยิ่งขึ้น",
+        "nft-spaceship-header": "ยานอวกาศ",
+        "nft-spaceship-description": "หนึ่งในระบบที่จะทำให้การเล่นมีมิติ, หลากหลาย และท้าทายมากยิ่งขึ้น",
         "nft-treasure-header": "กล่องสมบัติ",
         "nft-treasure-description": "ได้รับจากการเล่นเกม โดยจะสุ่มของรางวัลที่จะได้รับ",
         "ig-header": "ทรัพยากรในเกม",
@@ -140,5 +140,23 @@
         "planet-tooltip": "- ชื่อดาว: {planet} (สุ่ม)",
         "attributes-header": "[ All Attributes List ]",
         "attributes-description": "Minting new planet are randomizing all with an equal chance."
+    },
+    "Game": {
+        "modal-cancel-button": "กยเลิก",
+        "modal-enter-button": "เข้าสู่ยาน",
+        "modal-destroy-button": "ทำลาย",
+        "modal-send-button": "ส่ง",
+        "modal-type-title": "ประเภท: ",
+        "modal-supply-title": "จำนวน:",
+        "indicator-units-title": "หน่วย",
+        "tooltip-type-title": "ประเภท: ",
+        "tooltip-supply-title": "จำนวน: ",
+        "alert-distance-exceed": "'ระยะการเชื่อมต่อเกิน {distance}/1500 หน่วย ไม่สามารถเชื่อมต่อโหนดได้'",
+        "alert-export-one": "โหนดส่งออก สามารถมีการเชื่อมต่อได้เพียง 1 รายการเท่านั้น",
+        "alert-import-one": "โหนดนำเข้า สามารถรับการเชื่อมต่อได้เพียง 1 รายการเท่านั้น",
+        "alert-spaceship-four": "ยานอวกาศ สามารถมีการเชื่อมต่อได้สูงสุด 4 จุด",
+        "alert-invalid-connect": "การเชื่อมต่อไม่ถูกต้อง\nตรวจสอบกฎสำหรับการเชื่อมต่อโหนด",
+        "no-landing": "ไม่มีดาวเคราะห์ลงจอด",
+        "remove-connect": "คุณต้องการลบการเชื่อมต่อนี้หรือไม่?"
     }
 }
