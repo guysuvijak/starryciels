@@ -155,7 +155,7 @@ const CustomModal = ({ isOpen, onClose, onDelete, node, edges, canDelete }: any)
     const onSendClick = async () => {
         setIsSend(true);
         try {
-            const response = await UpdateProfile(String(wallet.publicKey), String(profilePublic), type, supply);
+            const response = await UpdateProfile(String(wallet.publicKey), String(profilePublic), type, supply.toFixed(2));
             if(response) {
                 updateNode(node.id, {
                     data: {
